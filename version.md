@@ -1,12 +1,17 @@
 # Versão
 
-**1.3.0**
+**1.3.1**
 
 Exibida na interface logo abaixo do logotipo (barra lateral e tela de login).
 Mantenha este arquivo sincronizado com `APP_VERSION` em `js/config/constants.js`.
 
 ## Histórico
 
+- **1.3.1** — Console de importação (abaixo do botão "Confirmar importação")
+  mostra em tempo real cada etapa da importação — criação de cidade/
+  congregação/jovem, e principalmente cada tentativa de espelhamento para o
+  Supabase com sucesso ou erro — para diagnosticar por que uma migração para
+  o Supabase não está funcionando sem precisar abrir o console do navegador.
 - **1.3.0** — Barra de progresso durante a importação de planilhas (útil
   principalmente com o Supabase ativo, mais lento que o IndexedDB por
   depender de rede), com percentual e contagem de registros processados.

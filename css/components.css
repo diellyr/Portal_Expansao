@@ -1,3 +1,38 @@
+/* Import log console */
+.import-log-console {
+  margin-top: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.import-log-console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  gap: var(--space-2);
+}
+.import-log-console-header > span { display: flex; align-items: center; gap: var(--space-2); }
+.import-log-console-body {
+  max-height: 240px;
+  overflow-y: auto;
+  background: #0b1222;
+  color: #cbd5e1;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: var(--space-3);
+}
+.import-log-line { white-space: pre-wrap; word-break: break-word; }
+.import-log-line-error { color: #f87171; }
+.import-log-line-warning { color: #fbbf24; }
+.import-log-line-time { color: #64748b; margin-right: var(--space-2); }
+.import-log-empty { color: #64748b; }
+
 /* Import progress */
 .import-progress { padding: var(--space-4) 0; }
 .import-progress-label {

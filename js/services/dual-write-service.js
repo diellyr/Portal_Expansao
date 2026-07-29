@@ -2,6 +2,7 @@ import { put as indexedDbPut } from "../database/db.js";
 import * as supabaseDb from "../database/supabase-db.js";
 import { isSupabaseMode } from "./data-mode-service.js";
 import { isSupabaseConfigured } from "./supabase-settings-service.js";
+import { logImport } from "./import-log-service.js";
 
 let supabaseMirrorFailed = false;
 
@@ -17,17 +18,19 @@ export async function mirrorToOtherBackend(table, record) {
     try {
       await indexedDbPut(table, record);
     } catch (err) {
-      console.warn(`Não foi possível espelhar o registro em "${table}" para o IndexedDB:`, err);
+      logImport(`Falha ao espelhar "${table}" (id ${record.id}) para o IndexedDB: ${err.message}`, "error");
     }
     return;
   }
 
   if (!isSupabaseConfigured()) return;
+  logImport(`Espelhando "${table}" (id ${record.id}) para o Supabase...`);
   try {
     await supabaseDb.put(table, record);
+    logImport(`Espelhamento de "${table}" (id ${record.id}) no Supabase concluído.`);
   } catch (err) {
     supabaseMirrorFailed = true;
-    console.warn(`Não foi possível espelhar o registro em "${table}" para o Supabase:`, err);
+    logImport(`Falha ao espelhar "${table}" (id ${record.id}) para o Supabase: ${err.message}`, "error");
   }
 }
 
