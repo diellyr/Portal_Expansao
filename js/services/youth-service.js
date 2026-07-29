@@ -50,6 +50,23 @@ export const YouthService = {
       liderExpansao: data.liderExpansao === true,
       seLider: data.seLider?.trim() || "",
       qualDepartamento: data.qualDepartamento?.trim() || "",
+      codigo: data.codigo?.toString().trim() || "",
+      nomeDirigente: data.nomeDirigente?.trim() || "",
+      recebidoPor: data.recebidoPor?.trim() || "",
+      tipoAdmissao: data.tipoAdmissao?.trim() || "",
+      escolaridade: data.escolaridade?.trim() || "",
+      profissao: data.profissao?.trim() || "",
+      endereco: data.endereco?.trim() || "",
+      numero: data.numero?.toString().trim() || "",
+      cep: data.cep?.trim() || "",
+      naturalidade: data.naturalidade?.trim() || "",
+      rg: data.rg?.trim() || "",
+      orgaoEmissor: data.orgaoEmissor?.trim() || "",
+      cpf: data.cpf?.trim() || "",
+      celular: data.celular?.trim() || "",
+      conjuge: data.conjuge?.trim() || "",
+      outroEstadoCivil: data.outroEstadoCivil?.trim() || "",
+      cargo: data.cargo?.trim() || "",
       observacoes: data.observacoes?.trim() || "",
       dataEntrada: data.dataEntrada || now.slice(0, 10),
       ativo: data.status !== "inativo",
@@ -62,6 +79,13 @@ export const YouthService = {
 
   async remove(id) {
     return YouthRepository.remove(id);
+  },
+
+  /** Suggests the next sequential membership code, for prefilling new records. */
+  async getNextCode() {
+    const youth = await this.list();
+    const codes = youth.map((y) => parseInt(y.codigo, 10)).filter((n) => !isNaN(n));
+    return codes.length ? String(Math.max(...codes) + 1) : "1";
   },
 
   isIncomplete(youth) {

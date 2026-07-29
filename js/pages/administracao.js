@@ -358,12 +358,16 @@ function setupTemplates() {
   qs("#download-csv-template").addEventListener("click", () => {
     const headers = EXPECTED_FIELDS.map((f) => f.key);
     const example = {
-      nome: "Maria Silva", bairro: "Centro", cidade: "Praia Grande", congregacao: "Praia Grande - Sede",
-      data_nascimento: "15/03/2005", telefone: "(13) 99999-0000", status: "ativo",
+      codigo: "1", nome: "Maria Silva", data_nascimento: "15/03/2005", naturalidade: "Praia Grande - SP",
+      telefone: "(13) 99999-0000", celular: "(13) 98888-0000", endereco: "Rua da Amizade", numero: "185",
+      bairro: "Centro", cep: "11700-000", cidade: "Praia Grande", congregacao: "Praia Grande - Sede", status: "ativo",
+      rg: "99.999.999-9", orgao_emissor: "SSP", cpf: "999.999.999-99", escolaridade: "Superior completo",
+      profissao: "Administrador", cargo: "Membro", estado_civil: "solteiro(a)", outro_estado_civil: "", conjuge: "",
       conselheiro_local: "João Souza", conselheiro_cidade: "Pedro Lima", pastor: "Pr. Carlos",
       pai: "José Silva", mae: "Ana Silva", data_batismo_aguas: "10/01/2020", batizado_espirito_santo: "sim",
       instrumento: "violão", prega: "não", canta: "sim", outros_talentos: "",
-      qtd: "1", estado_civil: "solteiro(a)", lider_expansao: "não", se_lider: "", qual_departamento: "louvor",
+      qtd: "1", lider_expansao: "não", se_lider: "", qual_departamento: "louvor",
+      nome_dirigente: "Pr. Carlos", recebido_por: "Secretaria", tipo_admissao: "batismo",
       observacoes: "",
     };
     downloadCSV(toCSV([example], headers), "modelo-importacao-portal-expansao.csv");
@@ -372,13 +376,17 @@ function setupTemplates() {
   qs("#download-excel-template").addEventListener("click", () => {
     if (!window.XLSX) return toast.error("Biblioteca SheetJS não carregada.");
     const example = {
-      Nome: "Maria Silva", Bairro: "Centro", Cidade: "Praia Grande", Congregação: "Praia Grande - Sede",
-      "Data de Nascimento": "15/03/2005", Telefone: "(13) 99999-0000", Status: "ativo",
+      Código: "1", Nome: "Maria Silva", "Data de Nascimento": "15/03/2005", Naturalidade: "Praia Grande - SP",
+      Telefone: "(13) 99999-0000", Celular: "(13) 98888-0000", Endereço: "Rua da Amizade", Número: "185",
+      Bairro: "Centro", CEP: "11700-000", Cidade: "Praia Grande", Congregação: "Praia Grande - Sede", Status: "ativo",
+      RG: "99.999.999-9", "Órgão Emissor": "SSP", CPF: "999.999.999-99", Escolaridade: "Superior completo",
+      Profissão: "Administrador", Cargo: "Membro", "Estado Civil": "solteiro(a)", "Outro (qual)?": "", Cônjuge: "",
       "Conselheiro Local": "João Souza", "Conselheiro da Cidade": "Pedro Lima", Pastor: "Pr. Carlos",
       "Nome do Pai": "José Silva", "Nome da Mãe": "Ana Silva", "Data de Batismo nas Águas": "10/01/2020",
       "Batizado no Espírito Santo": "sim", Instrumento: "violão", Prega: "não", Canta: "sim",
       "Outros Talentos": "",
-      Qtd: "1", "Estado Civil": "solteiro(a)", "Líder de Expansão?": "não", "Se líder, qual?": "", "Qual Departamento?": "louvor",
+      Qtd: "1", "Líder de Expansão?": "não", "Se líder, qual?": "", "Qual Departamento?": "louvor",
+      "Nome do Dirigente": "Pr. Carlos", "Cadastro Recebido Por": "Secretaria", "Tipo de Admissão": "batismo",
       Observações: "",
     };
     const worksheet = window.XLSX.utils.json_to_sheet([example]);

@@ -188,7 +188,9 @@ Fluxo completo em `js/services/import-service.js` + página `administracao.html`
 
 Modelos de planilha (CSV e Excel) podem ser baixados diretamente na página de Administração.
 
-Campos aceitos na importação (nem todos precisam estar na planilha): `nome`, `bairro`, `cidade`, `congregacao`, `data_nascimento`, `telefone`, `status`, `conselheiro_local`, `conselheiro_cidade`, `pastor`, `pai`, `mae`, `data_batismo_aguas`, `batizado_espirito_santo`, `instrumento`, `prega`, `canta`, `outros_talentos`, `qtd`, `estado_civil`, `lider_expansao`, `se_lider`, `qual_departamento` e `observacoes`. Apenas `nome`, `cidade` e `congregacao` são obrigatórios.
+Campos aceitos na importação (nem todos precisam estar na planilha): `codigo`, `nome`, `data_nascimento`, `naturalidade`, `telefone`, `celular`, `endereco`, `numero`, `bairro`, `cep`, `cidade`, `congregacao`, `status`, `rg`, `orgao_emissor`, `cpf`, `escolaridade`, `profissao`, `cargo`, `estado_civil`, `outro_estado_civil`, `conjuge`, `conselheiro_local`, `conselheiro_cidade`, `pastor`, `pai`, `mae`, `data_batismo_aguas`, `batizado_espirito_santo`, `instrumento`, `prega`, `canta`, `outros_talentos`, `qtd`, `lider_expansao`, `se_lider`, `qual_departamento`, `nome_dirigente`, `recebido_por`, `tipo_admissao` e `observacoes`. Apenas `nome`, `cidade` e `congregacao` são obrigatórios.
+
+> Atenção: `rg` e `cpf` são dados pessoais sensíveis. Veja o aviso em [Aviso sobre dados sensíveis](#aviso-sobre-dados-sensíveis) antes de usar dados reais em uma instância pública.
 
 A importação é tolerante a variações na planilha:
 
@@ -229,4 +231,4 @@ Para migrar, basta criar `Supabase*Repository` equivalentes (mesmas assinaturas 
 
 ## Aviso sobre dados sensíveis
 
-Este projeto é um MVP local e demonstrativo. **Não cadastre dados pessoais sensíveis reais** (nomes completos, telefones, endereços de jovens e famílias reais) em uma instância publicada publicamente no GitHub Pages, já que qualquer visitante consegue inspecionar o código-fonte e as credenciais de demonstração. Lembre-se que os dados inseridos por um usuário ficam salvos **somente no navegador dele** (não há vazamento entre usuários), mas o risco está em usar a demonstração pública com dados verídicos. Para uso em produção com dados reais, aguarde a migração para Supabase com autenticação e regras de acesso adequadas.
+Este projeto é um MVP local e demonstrativo. **Não cadastre dados pessoais sensíveis reais** (nomes completos, telefones, endereços, **RG e CPF** de jovens e famílias reais) em uma instância publicada publicamente no GitHub Pages, já que qualquer visitante consegue inspecionar o código-fonte e as credenciais de demonstração. O cadastro de Jovens inclui campos de documento (RG, CPF) para espelhar a ficha física de membresia — trate-os com o mesmo cuidado que trataria os documentos físicos. Lembre-se que os dados inseridos por um usuário ficam salvos **somente no navegador dele** (não há vazamento entre usuários), mas o risco está em usar a demonstração pública com dados verídicos. Para uso em produção com dados reais, aguarde a migração para Supabase com autenticação, regras de acesso e, idealmente, criptografia adequadas para os campos de documento.
