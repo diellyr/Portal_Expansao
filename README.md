@@ -39,8 +39,8 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 
 ## Funcionalidades
 
-- **Dashboard** com 11 cards de indicadores, 10 gráficos (Chart.js) e 7 listas/alertas, todos reativos aos filtros globais.
-- **Cidades, Congregações, Jovens e Eventos**: cadastro completo (criar, editar, visualizar, excluir), busca, ordenação, paginação e indicadores por registro.
+- **Dashboard** com 11 cards de indicadores, uma seção de **demografia** (total geral/ativos/sem igreja cadastrada por sexo, aniversariantes de hoje e do mês), 12 gráficos (Chart.js — incluindo distribuição por sexo, aniversariantes por dia do mês, e três indicadores anuais por mês filtráveis por ano: cadastros, admissões e batismos), uma tabela de faixa etária cruzada por sexo, e 7 listas/alertas — tudo reativo aos filtros globais.
+- **Cidades, Congregações, Jovens e Eventos**: cadastro completo (criar, editar, visualizar, excluir), busca, ordenação, paginação e indicadores por registro. Jovens podem ficar **sem congregação vinculada** ("sem igreja cadastrada"), refletido nos indicadores do dashboard.
 - **Foto do jovem** (JPEG, até 5MB) com prévia no formulário, miniatura clicável na lista e uma **ficha digital** (foto + todos os dados) ao clicar no nome ou na foto.
 - **Filtros globais combináveis**: cidade, congregação (escopada à cidade), status, faixa etária, batismo nas águas, batismo no Espírito Santo, prega, canta, instrumento e período — com chips removíveis mostrando os filtros ativos.
 - **Relatórios**: 10 relatórios (por cidade, por congregação, por status, faixa etária, batismo nas águas, batismo no Espírito Santo, talentos, aniversariantes, dados incompletos e comparativo de cidades), com exportação em CSV, Excel e impressão.
@@ -168,7 +168,13 @@ O dashboard, a página de Jovens e a página de Relatórios compartilham a mesma
 
 ## Dashboard
 
-11 cards de indicadores, 10 gráficos (com paleta de cores estável por cidade/categoria durante a sessão, tooltips com valor absoluto e percentual, e alternância Pizza/Barras para as nove cidades e faixas etárias) e 7 listas: aniversariantes do mês, próximos eventos, jovens cadastrados recentemente, ranking de cidades e congregações, jovens por instrumento e alertas de cadastros incompletos. Clicar em uma cidade no gráfico aplica o filtro daquela cidade em toda a página; o botão "Restaurar visualização" limpa os filtros.
+11 cards de indicadores, 12 gráficos (com paleta de cores estável por cidade/categoria durante a sessão, tooltips com valor absoluto e percentual, e alternância Pizza/Barras para as nove cidades e faixas etárias) e 7 listas: aniversariantes do mês, próximos eventos, jovens cadastrados recentemente, ranking de cidades e congregações, jovens por instrumento e alertas de cadastros incompletos. Clicar em uma cidade no gráfico aplica o filtro daquela cidade em toda a página; o botão "Restaurar visualização" limpa os filtros.
+
+**Demografia**: quatro cards com total geral de membros, total de membros ativos, total sem igreja cadastrada (todos com quebra por Masculino/Feminino) e aniversariantes (hoje / mês atual).
+
+**Gráficos adicionais**: distribuição percentual por sexo, aniversariantes por dia do mês (linha, dias 1 a 31) e uma tabela de faixa etária cruzada com sexo (Total/Masculino/Feminino por faixa).
+
+**Indicadores anuais**: um seletor de Ano filtra três gráficos de barras — cadastros realizados no ano por mês, admissões no ano por mês (baseado na data de entrada) e batizados no ano por mês (baseado na data de batismo nas águas) — todos respeitando os filtros globais já aplicados.
 
 ## Relatórios
 
@@ -189,7 +195,7 @@ Fluxo completo em `js/services/import-service.js` + página `administracao.html`
 
 Modelos de planilha (CSV e Excel) podem ser baixados diretamente na página de Administração.
 
-Campos aceitos na importação (nem todos precisam estar na planilha): `codigo`, `nome`, `data_nascimento`, `naturalidade`, `telefone`, `celular`, `endereco`, `numero`, `bairro`, `cep`, `cidade`, `congregacao`, `status`, `rg`, `orgao_emissor`, `cpf`, `escolaridade`, `profissao`, `cargo`, `estado_civil`, `outro_estado_civil`, `conjuge`, `conselheiro_local`, `conselheiro_cidade`, `pastor`, `pai`, `mae`, `data_batismo_aguas`, `batizado_espirito_santo`, `instrumento`, `prega`, `canta`, `outros_talentos`, `qtd`, `lider_expansao`, `se_lider`, `qual_departamento`, `nome_dirigente`, `recebido_por`, `tipo_admissao` e `observacoes`. Apenas `nome`, `cidade` e `congregacao` são obrigatórios.
+Campos aceitos na importação (nem todos precisam estar na planilha): `codigo`, `nome`, `data_nascimento`, `naturalidade`, `sexo`, `telefone`, `celular`, `endereco`, `numero`, `bairro`, `cep`, `cidade`, `congregacao`, `status`, `rg`, `orgao_emissor`, `cpf`, `escolaridade`, `profissao`, `cargo`, `estado_civil`, `outro_estado_civil`, `conjuge`, `conselheiro_local`, `conselheiro_cidade`, `pastor`, `pai`, `mae`, `data_batismo_aguas`, `batizado_espirito_santo`, `instrumento`, `prega`, `canta`, `outros_talentos`, `qtd`, `lider_expansao`, `se_lider`, `qual_departamento`, `nome_dirigente`, `recebido_por`, `tipo_admissao` e `observacoes`. Apenas `nome` e `cidade` são obrigatórios — `congregacao` é opcional (o jovem fica marcado como "sem igreja cadastrada").
 
 > Atenção: `rg` e `cpf` são dados pessoais sensíveis. Veja o aviso em [Aviso sobre dados sensíveis](#aviso-sobre-dados-sensíveis) antes de usar dados reais em uma instância pública.
 

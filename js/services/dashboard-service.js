@@ -4,7 +4,20 @@ import { YouthService } from "./youth-service.js";
 import { EventService } from "./event-service.js";
 import { applyYouthFilters } from "./filter-service.js";
 import { AGE_RANGES, YOUTH_STATUS_LABELS, EVENT_TYPE_LABELS } from "../config/constants.js";
-import { calculateAge, isBirthdayInMonth } from "../utils/dates.js";
+import { calculateAge, isBirthdayInMonth, todayISO } from "../utils/dates.js";
+
+const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function monthlyCounts(items, dateGetter, year) {
+  const counts = new Array(12).fill(0);
+  items.forEach((item) => {
+    const dateStr = dateGetter(item);
+    if (!dateStr) return;
+    const [y, m] = dateStr.split("-").map(Number);
+    if (y === year) counts[m - 1] += 1;
+  });
+  return counts;
+}
 
 async function loadRawData() {
   const [cities, congregations, youthRaw, events] = await Promise.all([
@@ -18,12 +31,13 @@ async function loadRawData() {
 }
 
 export const DashboardService = {
-  async build(filters) {
+  async build(filters, selectedYear) {
     const { cities, congregations, youth, events } = await loadRawData();
     const filtered = applyYouthFilters(youth, filters);
     const scopedCongregations =
       filters.cidadeId === "all" ? congregations : congregations.filter((c) => c.cidadeId === filters.cidadeId);
     const scopedCities = filters.cidadeId === "all" ? cities : cities.filter((c) => c.id === filters.cidadeId);
+    const year = selectedYear || new Date().getFullYear();
 
     return {
       cities,
@@ -31,8 +45,51 @@ export const DashboardService = {
       allYouthCount: youth.length,
       filtered,
       cards: this.buildCards(filtered, scopedCities, scopedCongregations, events),
+      demografia: this.buildDemografia(filtered),
       charts: this.buildCharts(filtered, cities, congregations),
+      yearCharts: this.buildYearCharts(filtered, year),
+      availableYears: this.getAvailableYears(youth),
       lists: await this.buildLists(filtered, cities, congregations, events),
+    };
+  },
+
+  getAvailableYears(youth) {
+    const years = new Set([new Date().getFullYear()]);
+    youth.forEach((y) => {
+      [y.createdAt?.slice(0, 4), y.dataEntrada?.slice(0, 4), y.dataBatismoAguas?.slice(0, 4)]
+        .filter(Boolean)
+        .forEach((yr) => years.add(Number(yr)));
+    });
+    return [...years].sort((a, b) => b - a);
+  },
+
+  buildDemografia(filtered) {
+    const bySexo = (list, sexo) => list.filter((y) => y.sexo === sexo).length;
+    const ativos = filtered.filter((y) => y.status === "ativo");
+    const semCongregacao = filtered.filter((y) => !y.congregacaoId);
+    const todayMonthDay = todayISO().slice(5, 10);
+    const currentMonth = new Date().getMonth() + 1;
+
+    return {
+      totalGeral: { total: filtered.length, masculino: bySexo(filtered, "masculino"), feminino: bySexo(filtered, "feminino") },
+      totalAtivos: { total: ativos.length, masculino: bySexo(ativos, "masculino"), feminino: bySexo(ativos, "feminino") },
+      semCongregacao: { total: semCongregacao.length, masculino: bySexo(semCongregacao, "masculino"), feminino: bySexo(semCongregacao, "feminino") },
+      aniversariantes: {
+        hoje: filtered.filter((y) => y.dataNascimento && y.dataNascimento.slice(5, 10) === todayMonthDay).length,
+        mesAtual: filtered.filter((y) => isBirthdayInMonth(y.dataNascimento, currentMonth)).length,
+      },
+    };
+  },
+
+  buildYearCharts(filtered, year) {
+    const cadastrosPorMes = monthlyCounts(filtered, (y) => y.createdAt?.slice(0, 10), year);
+    const admissoesPorMes = monthlyCounts(filtered, (y) => y.dataEntrada, year);
+    const batizadosPorMes = monthlyCounts(filtered, (y) => y.dataBatismoAguas, year);
+    return {
+      year,
+      cadastrosPorMes: { labels: MONTH_LABELS, values: cadastrosPorMes },
+      admissoesPorMes: { labels: MONTH_LABELS, values: admissoesPorMes },
+      batizadosPorMes: { labels: MONTH_LABELS, values: batizadosPorMes },
     };
   },
 
@@ -112,7 +169,46 @@ export const DashboardService = {
       { label: "Não cantam", value: filtered.filter((y) => y.canta !== true).length },
     ];
 
-    return { byCity, byCongregation, statusEntries, ageEntries, batismoAguas, batismoEs, instruments, pregacao, canto };
+    const sexoEntries = [
+      { label: "Masculino", value: filtered.filter((y) => y.sexo === "masculino").length },
+      { label: "Feminino", value: filtered.filter((y) => y.sexo === "feminino").length },
+    ];
+    const semSexoInformado = filtered.filter((y) => y.sexo !== "masculino" && y.sexo !== "feminino").length;
+    if (semSexoInformado > 0) sexoEntries.push({ label: "Não informado", value: semSexoInformado });
+
+    const aniversariantesPorDia = {
+      labels: Array.from({ length: 31 }, (_, i) => String(i + 1)),
+      values: new Array(31).fill(0),
+    };
+    filtered.forEach((y) => {
+      if (!y.dataNascimento) return;
+      const day = Number(y.dataNascimento.slice(8, 10));
+      if (day >= 1 && day <= 31) aniversariantesPorDia.values[day - 1] += 1;
+    });
+
+    const faixaEtariaPorSexo = AGE_RANGES.map((range) => {
+      const inRange = filtered.filter((y) => y.idade !== null && y.idade !== undefined && y.idade >= range.min && y.idade <= range.max);
+      return {
+        faixa: range.label,
+        total: inRange.length,
+        masculino: inRange.filter((y) => y.sexo === "masculino").length,
+        feminino: inRange.filter((y) => y.sexo === "feminino").length,
+      };
+    });
+    const semIdade = filtered.filter((y) => y.idade === null || y.idade === undefined);
+    if (semIdade.length > 0) {
+      faixaEtariaPorSexo.push({
+        faixa: "Não informado",
+        total: semIdade.length,
+        masculino: semIdade.filter((y) => y.sexo === "masculino").length,
+        feminino: semIdade.filter((y) => y.sexo === "feminino").length,
+      });
+    }
+
+    return {
+      byCity, byCongregation, statusEntries, ageEntries, batismoAguas, batismoEs, instruments, pregacao, canto,
+      sexoEntries, aniversariantesPorDia, faixaEtariaPorSexo,
+    };
   },
 
   async buildLists(filtered, cities, congregations, events) {

@@ -21,7 +21,9 @@ let filters = defaultFilters();
 let cities = [];
 let congregations = [];
 let instruments = [];
+let selectedYear = new Date().getFullYear();
 const charts = {};
+const yearCharts = {};
 
 async function init() {
   renderLoading(qs("#metric-cards"), "Carregando indicadores...");
@@ -30,7 +32,12 @@ async function init() {
   instruments = [...new Set(youth.map((y) => y.instrumento).filter(Boolean))].sort();
 
   buildChartCards();
+  buildYearChartCards();
   renderFiltersUI();
+  qs("#year-select").addEventListener("change", async (e) => {
+    selectedYear = Number(e.target.value);
+    await refresh();
+  });
   await refresh();
 }
 
@@ -85,6 +92,8 @@ function buildChartCards() {
     { key: "instruments", title: "Principais instrumentos", desc: "Instrumentos tocados pelos jovens.", defaultType: "bar" },
     { key: "pregacao", title: "Jovens que pregam", desc: "Proporção de jovens que pregam.", defaultType: "pie" },
     { key: "canto", title: "Jovens que cantam", desc: "Proporção de jovens que cantam.", defaultType: "pie" },
+    { key: "sexoEntries", title: "Porcentagem por sexo", desc: "Distribuição de jovens por sexo.", defaultType: "pie" },
+    { key: "aniversariantesPorDia", title: "Aniversariantes por dia do mês", desc: "Quantidade de aniversariantes em cada dia (1 a 31).", defaultType: "line" },
   ];
 
   for (const spec of specs) {
@@ -109,8 +118,102 @@ function buildChartCards() {
   }
 }
 
+function buildYearChartCards() {
+  const grid = qs("#year-charts-grid");
+  grid.innerHTML = "";
+
+  const specs = [
+    { key: "cadastrosPorMes", title: "Cadastros realizados no ano, por mês", desc: "Novos jovens cadastrados a cada mês do ano selecionado." },
+    { key: "admissoesPorMes", title: "Admissões no ano, por mês", desc: "Jovens admitidos (data de entrada) a cada mês do ano selecionado." },
+    { key: "batizadosPorMes", title: "Batizados no ano, por mês", desc: "Batismos nas águas a cada mês do ano selecionado." },
+  ];
+
+  for (const spec of specs) {
+    const card = createChartCard({ title: spec.title, description: spec.desc, defaultType: "bar" });
+    yearCharts[spec.key] = card;
+    grid.appendChild(card.card);
+  }
+}
+
+function populateYearSelect(years) {
+  const select = qs("#year-select");
+  const currentValues = Array.from(select.options).map((o) => o.value);
+  const nextValues = years.map(String);
+  if (currentValues.join(",") !== nextValues.join(",")) {
+    select.innerHTML = "";
+    years.forEach((y) => select.appendChild(new Option(String(y), String(y), false, y === selectedYear)));
+  }
+  select.value = String(selectedYear);
+}
+
+function demografiaCard(title, icon, tiles) {
+  return el("div", { class: "surface metric-card" }, [
+    el("div", { class: "metric-card-top" }, [
+      el("span", { class: "metric-card-title" }, title),
+      el("div", { class: "metric-card-icon" }, [el("i", { "data-lucide": icon, class: "icon" })]),
+    ]),
+    el(
+      "div",
+      { class: "summary-grid", style: "margin: var(--space-2) 0 0;" },
+      tiles.map(([label, value]) =>
+        el("div", { class: "summary-tile" }, [
+          el("div", { class: "summary-tile-value" }, formatNumber(value)),
+          el("div", { class: "summary-tile-label" }, label),
+        ])
+      )
+    ),
+  ]);
+}
+
+function renderDemografia(dem) {
+  const grid = qs("#demografia-grid");
+  grid.innerHTML = "";
+  grid.appendChild(
+    demografiaCard("Total geral de membros", "users", [
+      ["Total", dem.totalGeral.total],
+      ["Masculino", dem.totalGeral.masculino],
+      ["Feminino", dem.totalGeral.feminino],
+    ])
+  );
+  grid.appendChild(
+    demografiaCard("Total de membros ativos", "user-check", [
+      ["Total", dem.totalAtivos.total],
+      ["Masculino", dem.totalAtivos.masculino],
+      ["Feminino", dem.totalAtivos.feminino],
+    ])
+  );
+  grid.appendChild(
+    demografiaCard("Sem igreja cadastrada", "home", [
+      ["Total", dem.semCongregacao.total],
+      ["Masculino", dem.semCongregacao.masculino],
+      ["Feminino", dem.semCongregacao.feminino],
+    ])
+  );
+  grid.appendChild(
+    demografiaCard("Aniversariantes", "cake", [
+      ["Hoje", dem.aniversariantes.hoje],
+      ["Mês atual", dem.aniversariantes.mesAtual],
+    ])
+  );
+  refreshIcons();
+}
+
+function renderFaixaEtariaSexoTable(rows) {
+  const container = qs("#faixa-etaria-sexo-table");
+  const bodyRows = rows
+    .map(
+      (r) =>
+        `<tr><td>${r.faixa}</td><td>${formatNumber(r.total)}</td><td>${formatNumber(r.masculino)}</td><td>${formatNumber(r.feminino)}</td></tr>`
+    )
+    .join("");
+  container.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th class="no-sort">Faixa etária</th><th class="no-sort">Total</th><th class="no-sort">Masculino</th><th class="no-sort">Feminino</th></tr></thead><tbody>${bodyRows}</tbody></table></div>`;
+}
+
 async function refresh() {
-  const { cards, charts: chartData, lists } = await DashboardService.build(filters);
+  const { cards, charts: chartData, lists, demografia, yearCharts: yearChartData, availableYears } = await DashboardService.build(
+    filters,
+    selectedYear
+  );
 
   renderMetricCards(qs("#metric-cards"), [
     { title: "Total de jovens", value: cards.total, icon: "users", tooltip: "Total de jovens no filtro atual" },
@@ -136,6 +239,16 @@ async function refresh() {
   charts.instruments.setData(chartData.instruments.map((c) => c.label), chartData.instruments.map((c) => c.value));
   charts.pregacao.setData(chartData.pregacao.map((c) => c.label), chartData.pregacao.map((c) => c.value));
   charts.canto.setData(chartData.canto.map((c) => c.label), chartData.canto.map((c) => c.value));
+  charts.sexoEntries.setData(chartData.sexoEntries.map((c) => c.label), chartData.sexoEntries.map((c) => c.value));
+  charts.aniversariantesPorDia.setData(chartData.aniversariantesPorDia.labels, chartData.aniversariantesPorDia.values);
+
+  renderDemografia(demografia);
+  renderFaixaEtariaSexoTable(chartData.faixaEtariaPorSexo);
+
+  populateYearSelect(availableYears);
+  yearCharts.cadastrosPorMes.setData(yearChartData.cadastrosPorMes.labels, yearChartData.cadastrosPorMes.values);
+  yearCharts.admissoesPorMes.setData(yearChartData.admissoesPorMes.labels, yearChartData.admissoesPorMes.values);
+  yearCharts.batizadosPorMes.setData(yearChartData.batizadosPorMes.labels, yearChartData.batizadosPorMes.values);
 
   renderLists(lists);
 }

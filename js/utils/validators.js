@@ -26,7 +26,6 @@ export function validateYouth(data) {
   const errors = {};
   if (!isRequired(data.nome)) errors.nome = "Nome é obrigatório.";
   if (!isRequired(data.cidadeId)) errors.cidadeId = "Cidade é obrigatória.";
-  if (!isRequired(data.congregacaoId)) errors.congregacaoId = "Congregação é obrigatória.";
   if (data.dataNascimento && !isValidDateString(data.dataNascimento)) {
     errors.dataNascimento = "Data de nascimento inválida.";
   }

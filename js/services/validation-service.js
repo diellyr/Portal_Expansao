@@ -46,7 +46,7 @@ export function validateMappedRow(row) {
 
   if (!normalizeText(row.nome)) errors.push("Nome é obrigatório.");
   if (!normalizeText(row.cidade)) errors.push("Cidade é obrigatória.");
-  if (!normalizeText(row.congregacao)) errors.push("Congregação é obrigatória.");
+  if (!normalizeText(row.congregacao)) warnings.push("Congregação não informada — o jovem será cadastrado sem igreja vinculada.");
 
   if (row.data_nascimento_raw && row.data_nascimento === null) {
     warnings.push("Data de nascimento em formato não reconhecido.");

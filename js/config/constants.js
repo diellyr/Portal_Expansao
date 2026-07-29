@@ -51,6 +51,11 @@ export const TIPO_ADMISSAO_LABELS = {
   outro: "Outro",
 };
 
+export const SEXO_LABELS = {
+  masculino: "Masculino",
+  feminino: "Feminino",
+};
+
 export const YOUTH_STATUS_BADGE = {
   ativo: "success",
   visitante: "info",

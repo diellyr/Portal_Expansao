@@ -18,8 +18,9 @@ export const EXPECTED_FIELDS = [
   { key: "bairro", label: "Bairro" },
   { key: "cep", label: "CEP" },
   { key: "cidade", label: "Cidade", required: true },
-  { key: "congregacao", label: "Congregação", required: true },
+  { key: "congregacao", label: "Congregação" },
   { key: "status", label: "Status" },
+  { key: "sexo", label: "Sexo" },
   { key: "rg", label: "RG" },
   { key: "orgao_emissor", label: "Órgão emissor" },
   { key: "cpf", label: "CPF" },
@@ -68,6 +69,7 @@ const COLUMN_ALIASES = {
   cidade: ["cidade", "cidade da congregacao"],
   congregacao: ["congregacao", "congregacao local"],
   status: ["status", "situacao"],
+  sexo: ["sexo", "genero"],
   rg: ["rg"],
   orgao_emissor: ["orgao emissor", "org emissor"],
   cpf: ["cpf"],
@@ -114,6 +116,13 @@ function statusKeyFrom(rawStatus) {
   return found || null;
 }
 
+function sexoKeyFrom(rawSexo) {
+  const normalized = normalizeForComparison(rawSexo);
+  if (["m", "masculino", "masc", "homem"].includes(normalized)) return "masculino";
+  if (["f", "feminino", "fem", "mulher"].includes(normalized)) return "feminino";
+  return "";
+}
+
 export function mapRecords(records, mapping) {
   return records.map((raw) => {
     const get = (key) => (mapping[key] ? raw[mapping[key]] : "");
@@ -138,6 +147,7 @@ export function mapRecords(records, mapping) {
       status_raw: statusRaw,
       status: statusRaw && statusValido ? statusKeyFrom(statusRaw) : "ativo",
       statusValido,
+      sexo: sexoKeyFrom(get("sexo")),
       rg: normalizeText(get("rg")),
       orgao_emissor: normalizeText(get("orgao_emissor")),
       cpf: normalizeText(get("cpf")),
@@ -293,11 +303,14 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       cityByName.set(cityKey, city);
     }
 
-    const congKey = `${normalizeForComparison(row.congregacao)}|${city.id}`;
-    let congregation = congByKey.get(congKey);
-    if (!congregation) {
-      congregation = await CongregationService.save({ nome: row.congregacao, cidadeId: city.id, ativo: true });
-      congByKey.set(congKey, congregation);
+    let congregation = null;
+    if (row.congregacao) {
+      const congKey = `${normalizeForComparison(row.congregacao)}|${city.id}`;
+      congregation = congByKey.get(congKey);
+      if (!congregation) {
+        congregation = await CongregationService.save({ nome: row.congregacao, cidadeId: city.id, ativo: true });
+        congByKey.set(congKey, congregation);
+      }
     }
 
     const key = duplicateKey(row);
@@ -323,8 +336,9 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       bairro: row.bairro,
       cep: row.cep,
       cidadeId: city.id,
-      congregacaoId: congregation.id,
+      congregacaoId: congregation?.id || null,
       status: row.status,
+      sexo: row.sexo,
       rg: row.rg,
       orgaoEmissor: row.orgao_emissor,
       cpf: row.cpf,
