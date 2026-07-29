@@ -84,6 +84,7 @@ export const BackupService = {
       "nome", "cidade", "congregacao", "status", "data_nascimento", "telefone", "bairro",
       "pastor", "conselheiro_local", "conselheiro_cidade", "data_batismo_aguas",
       "batizado_espirito_santo", "instrumento", "prega", "canta", "outros_talentos",
+      "qtd", "estado_civil", "lider_expansao", "se_lider", "qual_departamento",
     ];
     const rows = youthList.map((y) => ({
       nome: y.nome,
@@ -102,6 +103,11 @@ export const BackupService = {
       prega: formatBoolean(y.prega),
       canta: formatBoolean(y.canta),
       outros_talentos: y.outrosTalentos || "",
+      qtd: y.qtd || "",
+      estado_civil: y.estadoCivil || "",
+      lider_expansao: formatBoolean(y.liderExpansao),
+      se_lider: y.seLider || "",
+      qual_departamento: y.qualDepartamento || "",
     }));
     downloadCSV(toCSV(rows, headers), `portal-expansao-jovens-${new Date().toISOString().slice(0, 10)}.csv`);
   },
@@ -127,6 +133,11 @@ export const BackupService = {
       Prega: formatBoolean(y.prega),
       Canta: formatBoolean(y.canta),
       "Outros Talentos": y.outrosTalentos || "",
+      Qtd: y.qtd || "",
+      "Estado Civil": y.estadoCivil || "",
+      "Líder de Expansão?": formatBoolean(y.liderExpansao),
+      "Se líder, qual?": y.seLider || "",
+      "Qual Departamento?": y.qualDepartamento || "",
     }));
     const worksheet = window.XLSX.utils.json_to_sheet(rows);
     const workbook = window.XLSX.utils.book_new();

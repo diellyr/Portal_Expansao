@@ -188,6 +188,13 @@ Fluxo completo em `js/services/import-service.js` + página `administracao.html`
 
 Modelos de planilha (CSV e Excel) podem ser baixados diretamente na página de Administração.
 
+Campos aceitos na importação (nem todos precisam estar na planilha): `nome`, `bairro`, `cidade`, `congregacao`, `data_nascimento`, `telefone`, `status`, `conselheiro_local`, `conselheiro_cidade`, `pastor`, `pai`, `mae`, `data_batismo_aguas`, `batizado_espirito_santo`, `instrumento`, `prega`, `canta`, `outros_talentos`, `qtd`, `estado_civil`, `lider_expansao`, `se_lider`, `qual_departamento` e `observacoes`. Apenas `nome`, `cidade` e `congregacao` são obrigatórios.
+
+A importação é tolerante a variações na planilha:
+
+- **Planilha com menos colunas que o esperado**: a importação continua normalmente — os campos ausentes ficam em branco para as linhas importadas — e a tela de mapeamento mostra um aviso listando quais colunas esperadas não foram encontradas no arquivo.
+- **Planilha com colunas diferentes/extras**: as colunas do arquivo que não foram reconhecidas automaticamente por nenhum campo esperado são listadas na tela de mapeamento (podem ser mapeadas manualmente caso correspondam a algum campo).
+
 ## Backup e restauração
 
 - **Exportar backup completo** (`portal-expansao-backup-YYYY-MM-DD.json`): inclui cidades, congregações, jovens, eventos, configurações e histórico de importações.

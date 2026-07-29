@@ -25,6 +25,11 @@ export const EXPECTED_FIELDS = [
   { key: "prega", label: "Prega" },
   { key: "canta", label: "Canta" },
   { key: "outros_talentos", label: "Outros talentos" },
+  { key: "qtd", label: "Qtd" },
+  { key: "estado_civil", label: "Estado civil" },
+  { key: "lider_expansao", label: "Líder de Expansão?" },
+  { key: "se_lider", label: "Se líder, qual?" },
+  { key: "qual_departamento", label: "Qual departamento?" },
   { key: "observacoes", label: "Observações" },
 ];
 
@@ -47,6 +52,11 @@ const COLUMN_ALIASES = {
   prega: ["prega"],
   canta: ["canta"],
   outros_talentos: ["outros_talentos", "outros talentos"],
+  qtd: ["qtd", "quantidade"],
+  estado_civil: ["estado_civil", "estado civil"],
+  lider_expansao: ["lider_expansao?", "lider_expansao", "lider expansao?", "lider expansao", "e lider de expansao?", "lider de expansao?", "lider de expansao"],
+  se_lider: ["se_lider", "se lider", "se lider?", "se_lider_qual", "se lider qual", "se lider, qual?", "se lider (qual)", "se lider (qual)?"],
+  qual_departamento: ["qual_departamento?", "qual_departamento", "qual departamento?", "qual departamento", "departamento"],
   observacoes: ["observacoes", "observações"],
 };
 
@@ -95,9 +105,27 @@ export function mapRecords(records, mapping) {
       prega: normalizeBoolean(get("prega")) === true,
       canta: normalizeBoolean(get("canta")) === true,
       outros_talentos: normalizeText(get("outros_talentos")),
+      qtd: normalizeText(get("qtd")),
+      estado_civil: normalizeText(get("estado_civil")),
+      lider_expansao: normalizeBoolean(get("lider_expansao")) === true,
+      se_lider: normalizeText(get("se_lider")),
+      qual_departamento: normalizeText(get("qual_departamento")),
       observacoes: normalizeText(get("observacoes")),
     };
   });
+}
+
+/**
+ * Compares the file's headers against EXPECTED_FIELDS/aliases so the mapping
+ * step can warn about optional columns the file doesn't have, and list any
+ * headers in the file that weren't recognized by any alias (informational —
+ * they can still be mapped manually).
+ */
+export function diffHeaders(headers, mapping) {
+  const missingFields = EXPECTED_FIELDS.filter((f) => !f.required && !mapping[f.key]);
+  const mappedHeaders = new Set(Object.values(mapping).filter(Boolean));
+  const unrecognizedHeaders = headers.filter((h) => !mappedHeaders.has(h));
+  return { missingFields, unrecognizedHeaders };
 }
 
 function duplicateKey(row) {
@@ -153,12 +181,12 @@ export async function analyzeImport(mappedRows) {
     const isDuplicate = validation.errors.length === 0 && (existingKeys.has(key) || seenBatchKeys.has(key));
     seenBatchKeys.add(key);
 
-    let status = validation.status;
-    if (isDuplicate && status !== "invalida") status = "duplicada";
+    let rowStatus = validation.status;
+    if (isDuplicate && rowStatus !== "invalida") rowStatus = "duplicada";
 
     return {
       ...row,
-      status,
+      rowStatus,
       errors: validation.errors,
       warnings: validation.warnings,
       isDuplicate,
@@ -170,10 +198,10 @@ export async function analyzeImport(mappedRows) {
 
   const summary = {
     total: rows.length,
-    validas: rows.filter((r) => r.status === "valida").length,
-    avisos: rows.filter((r) => r.status === "aviso").length,
-    invalidas: rows.filter((r) => r.status === "invalida").length,
-    duplicadas: rows.filter((r) => r.status === "duplicada").length,
+    validas: rows.filter((r) => r.rowStatus === "valida").length,
+    avisos: rows.filter((r) => r.rowStatus === "aviso").length,
+    invalidas: rows.filter((r) => r.rowStatus === "invalida").length,
+    duplicadas: rows.filter((r) => r.rowStatus === "duplicada").length,
     novasCidades: newCityNames.size,
     novasCongregacoes: newCongregations.size,
   };
@@ -194,11 +222,11 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
   let erros = 0;
 
   for (const row of rows) {
-    if (row.status === "invalida") {
+    if (row.rowStatus === "invalida") {
       erros++;
       continue;
     }
-    if (row.status === "duplicada" && duplicateStrategy === "ignorar") {
+    if (row.rowStatus === "duplicada" && duplicateStrategy === "ignorar") {
       ignorados++;
       continue;
     }
@@ -247,10 +275,15 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       prega: row.prega,
       canta: row.canta,
       outrosTalentos: row.outros_talentos,
+      qtd: row.qtd,
+      estadoCivil: row.estado_civil,
+      liderExpansao: row.lider_expansao,
+      seLider: row.se_lider,
+      qualDepartamento: row.qual_departamento,
       observacoes: row.observacoes,
     };
 
-    if (matchIdx >= 0 && (row.status !== "duplicada" || duplicateStrategy === "atualizar")) {
+    if (matchIdx >= 0 && (row.rowStatus !== "duplicada" || duplicateStrategy === "atualizar")) {
       await YouthRepository.save({ ...existingYouth[matchIdx], ...payload, updatedAt: new Date().toISOString() });
       atualizados++;
     } else if (matchIdx >= 0 && duplicateStrategy === "importar") {
@@ -279,12 +312,12 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
 }
 
 export function buildErrorsCSV(rows) {
-  const problemRows = rows.filter((r) => r.status === "invalida" || r.status === "aviso");
-  const headers = ["nome", "cidade", "congregacao", "status", "problemas"];
+  const problemRows = rows.filter((r) => r.rowStatus === "invalida" || r.rowStatus === "aviso");
+  const headers = ["nome", "cidade", "congregacao", "status_importacao", "problemas"];
   const lines = [headers.join(",")];
   for (const row of problemRows) {
     const problems = [...row.errors, ...row.warnings].join(" | ").replace(/"/g, "'");
-    lines.push([row.nome, row.cidade, row.congregacao, row.status, `"${problems}"`].join(","));
+    lines.push([row.nome, row.cidade, row.congregacao, row.rowStatus, `"${problems}"`].join(","));
   }
   return lines.join("\r\n");
 }
