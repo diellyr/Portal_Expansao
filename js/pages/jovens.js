@@ -9,6 +9,7 @@ import { renderDataTable, sortRows } from "../components/data-table.js";
 import { renderPagination } from "../components/pagination.js";
 import { openModal, confirmModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
+import { createPhotoUpload } from "../components/photo-upload.js";
 import { el, qs, debounce, refreshIcons } from "../utils/dom-utils.js";
 import { calculateAge, formatDateBR } from "../utils/dates.js";
 import { formatBoolean } from "../utils/formatters.js";
@@ -120,7 +121,16 @@ function render() {
   renderDataTable(qs("#youth-table"), {
     columns: [
       { key: "codigo", label: "Código", render: (r) => r.codigo || "—" },
-      { key: "nome", label: "Nome" },
+      {
+        key: "nome",
+        label: "Nome",
+        render: (r) =>
+          el(
+            "button",
+            { type: "button", class: "name-cell-link", "aria-label": `Abrir ficha de ${r.nome}`, onClick: () => openYouthDetails(r) },
+            [avatarNode(r, "sm"), el("span", {}, r.nome)]
+          ),
+      },
       { key: "idade", label: "Idade", render: (r) => (r.idade === null ? "Não informado" : `${r.idade} anos`) },
       { key: "cidadeId", label: "Cidade", render: (r) => cityName(r.cidadeId) },
       { key: "congregacaoId", label: "Congregação", render: (r) => congName(r.congregacaoId) },
@@ -160,12 +170,34 @@ function statusBadge(status) {
   return { ativo: "success", visitante: "info", novo_convertido: "info", ausente: "warning", transferido: "neutral", inativo: "danger" }[status] || "neutral";
 }
 
+function avatarNode(youth, size = "sm") {
+  if (youth.foto) {
+    return el("img", { src: youth.foto, alt: "", class: size === "lg" ? "ficha-header-photo" : "avatar-thumb" });
+  }
+  return el("div", { class: size === "lg" ? "ficha-header-photo-placeholder" : "avatar-thumb-placeholder" }, [
+    el("i", { "data-lucide": "user", class: size === "lg" ? "icon icon-lg" : "icon icon-sm" }),
+  ]);
+}
+
 function detailItem(label, value) {
   return el("div", { class: "detail-item" }, [el("span", { class: "detail-item-label" }, label), el("span", { class: "detail-item-value" }, value)]);
 }
 
 function openYouthDetails(youth) {
-  const body = el("div", { class: "detail-grid" }, [
+  const header = el("div", { class: "ficha-header" }, [
+    avatarNode(youth, "lg"),
+    el("div", { class: "ficha-header-info" }, [
+      el("div", { class: "ficha-header-name" }, youth.nome),
+      el("div", { class: "ficha-header-meta" }, [
+        youth.codigo ? el("span", {}, `Código ${youth.codigo}`) : null,
+        el("span", { class: `badge badge-${statusBadge(youth.status)}` }, YOUTH_STATUS_LABELS[youth.status] || youth.status),
+        el("span", {}, cityName(youth.cidadeId)),
+        el("span", {}, congName(youth.congregacaoId)),
+      ].filter(Boolean)),
+    ]),
+  ]);
+
+  const grid = el("div", { class: "detail-grid" }, [
     detailItem("Código", youth.codigo || "Não informado"),
     detailItem("Idade", youth.idade === null ? "Não informado" : `${youth.idade} anos`),
     detailItem("Data de nascimento", formatDateBR(youth.dataNascimento)),
@@ -209,7 +241,9 @@ function openYouthDetails(youth) {
     detailItem("Observações", youth.observacoes || "Não informado"),
     detailItem("Data de entrada", formatDateBR(youth.dataEntrada)),
   ]);
-  openModal({ title: youth.nome, body, size: "modal-lg", actions: [{ label: "Fechar", className: "btn btn-secondary" }] });
+
+  const body = el("div", {}, [header, grid]);
+  openModal({ title: "Ficha do jovem", body, size: "modal-lg", actions: [{ label: "Fechar", className: "btn btn-secondary" }] });
 }
 
 function field(id, label, inputEl, required = false) {
@@ -241,9 +275,11 @@ async function openYouthForm(youth) {
     nomePai: "", nomeMae: "", pastor: "", conselheiroLocal: "", conselheiroCidade: "",
     dataBatismoAguas: "", batizadoEspiritoSanto: false, instrumento: "", prega: false, canta: false,
     outrosTalentos: "", qtd: "", estadoCivil: "", outroEstadoCivil: "", liderExpansao: false, seLider: "", qualDepartamento: "",
-    nomeDirigente: "", recebidoPor: "", tipoAdmissao: "",
+    nomeDirigente: "", recebidoPor: "", tipoAdmissao: "", foto: null,
     observacoes: "", dataEntrada: new Date().toISOString().slice(0, 10),
   };
+
+  const photoUpload = createPhotoUpload({ value: data.foto });
 
   const citySelect = el("select", { id: "field-cidadeId", class: "form-control" }, cities.map((c) => new Option(c.nome, c.id, false, c.id === data.cidadeId)));
   const congSelect = el("select", { id: "field-congregacaoId", class: "form-control" });
@@ -272,6 +308,8 @@ async function openYouthForm(youth) {
   );
 
   const form = el("form", { novalidate: true }, [
+    el("div", { class: "form-section-title" }, "Foto"),
+    photoUpload.element,
     el("div", { class: "form-section-title" }, "Registro do cadastro"),
     el("div", { class: "form-grid" }, [
       field("field-codigo", "Código", textInput("field-codigo", data.codigo)),
@@ -357,6 +395,7 @@ async function openYouthForm(youth) {
         onClick: async () => {
           const payload = {
             ...data,
+            foto: photoUpload.getValue(),
             codigo: qs("#field-codigo", form).value,
             nomeDirigente: qs("#field-nomeDirigente", form).value,
             recebidoPor: qs("#field-recebidoPor", form).value,
