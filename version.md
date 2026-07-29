@@ -1,12 +1,18 @@
 # Versão
 
-**1.2.1**
+**1.3.0**
 
 Exibida na interface logo abaixo do logotipo (barra lateral e tela de login).
 Mantenha este arquivo sincronizado com `APP_VERSION` em `js/config/constants.js`.
 
 ## Histórico
 
+- **1.3.0** — Barra de progresso durante a importação de planilhas (útil
+  principalmente com o Supabase ativo, mais lento que o IndexedDB por
+  depender de rede), com percentual e contagem de registros processados.
+  Ao final, mensagem de sucesso com o resumo; em caso de falha, mensagem
+  clara com o motivo do erro e botão para tentar novamente sem perder o
+  mapeamento já feito.
 - **1.2.1** — Formulário em Administração → Fonte de dados para configurar a
   URL e a chave anon do Supabase direto pela tela (salvo no navegador),
   sem precisar editar `js/config/supabase-config.js`.

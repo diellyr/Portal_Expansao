@@ -275,7 +275,7 @@ export async function analyzeImport(mappedRows) {
   return { rows, newCityNames: [...newCityNames], newCongregations: [...newCongregations.values()], summary };
 }
 
-export async function commitImport(rows, { duplicateStrategy = "ignorar", fileName, fileFormat } = {}) {
+export async function commitImport(rows, { duplicateStrategy = "ignorar", fileName, fileFormat, onProgress } = {}) {
   const cities = await CityService.list();
   const congregations = await CongregationService.list();
   const cityByName = new Map(cities.map((c) => [normalizeForComparison(c.nome), c]));
@@ -287,13 +287,18 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
   let ignorados = 0;
   let erros = 0;
 
-  for (const row of rows) {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const reportProgress = () => onProgress?.({ processed: i + 1, total: rows.length });
+
     if (row.rowStatus === "invalida") {
       erros++;
+      reportProgress();
       continue;
     }
     if (row.rowStatus === "duplicada" && duplicateStrategy === "ignorar") {
       ignorados++;
+      reportProgress();
       continue;
     }
 
@@ -386,6 +391,7 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       ignorados++;
     }
     if (savedYouth) await mirrorToOtherBackend(STORES.YOUTH, savedYouth);
+    reportProgress();
   }
 
   const result = { criados, atualizados, ignorados, erros };
