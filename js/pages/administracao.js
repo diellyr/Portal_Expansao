@@ -17,6 +17,7 @@ import {
   clearSupabaseCredentials,
   isSupabaseConfigured,
 } from "../services/supabase-settings-service.js";
+import { logImport, onImportLog } from "../services/import-log-service.js";
 
 const ok = await bootstrapPage({ activeKey: "administracao", title: "Administração" });
 if (ok) init();
@@ -34,6 +35,7 @@ async function init() {
   // Wired up first and unconditionally: if the active data source is broken
   // (e.g. Supabase misconfigured), the user must still be able to reach this
   // switch to get back to a working backend.
+  setupImportLogConsole();
   setupDataMode();
   setupDropzone();
   setupTemplates();
@@ -44,7 +46,7 @@ async function init() {
   try {
     cities = await CityService.list();
   } catch (err) {
-    console.error("Falha ao carregar cidades:", err);
+    logImport(`Falha ao carregar cidades: ${err.message}`, "error");
     toast.error("Não foi possível carregar dados do banco ativo. Verifique a fonte de dados acima.");
     cities = [];
   }
@@ -483,7 +485,7 @@ async function loadHistory() {
   try {
     historyEntries = await ImportHistoryRepository.list();
   } catch (err) {
-    console.error("Falha ao carregar histórico de importações:", err);
+    logImport(`Falha ao carregar histórico de importações: ${err.message}`, "error");
     historyEntries = [];
   }
   renderHistory();
@@ -565,6 +567,35 @@ function detailItem(label, value) {
   return el("div", { class: "detail-item" }, [el("span", { class: "detail-item-label" }, label), el("span", { class: "detail-item-value" }, value)]);
 }
 
+/* ---------------- Import log console ---------------- */
+
+function setupImportLogConsole() {
+  const body = qs("#import-log-console-body");
+  let hasEntries = false;
+
+  onImportLog(({ time, message, level }) => {
+    if (!hasEntries) {
+      body.innerHTML = "";
+      hasEntries = true;
+    }
+    const line = el(
+      "div",
+      { class: `import-log-line${level === "error" ? " import-log-line-error" : level === "warning" ? " import-log-line-warning" : ""}` },
+      [el("span", { class: "import-log-line-time" }, time.toLocaleTimeString("pt-BR")), el("span", {}, message)]
+    );
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  });
+
+  qs("#clear-import-log-btn").addEventListener("click", () => {
+    body.innerHTML = "";
+    hasEntries = false;
+    body.appendChild(el("div", { class: "import-log-empty" }, "Nenhum log ainda. Os eventos da importação (e da troca de fonte de dados) vão aparecer aqui."));
+  });
+
+  logImport(`Console de importação pronto. Fonte de dados atual: ${getDataMode() === DATA_MODES.SUPABASE ? "Supabase" : "IndexedDB"}.`);
+}
+
 /* ---------------- Data source (IndexedDB / Supabase) ---------------- */
 
 function setupDataMode() {
@@ -595,10 +626,12 @@ function setupDataMode() {
   toggle.addEventListener("click", () => {
     const switchingToSupabase = getDataMode() !== DATA_MODES.SUPABASE;
     if (switchingToSupabase && !isSupabaseConfigured()) {
+      logImport("Tentativa de ativar o Supabase bloqueada: URL ou chave anon não configuradas.", "warning");
       toast.error("Preencha e salve a URL e a chave anon do Supabase abaixo antes de ativar o Supabase.");
       return;
     }
     setDataMode(switchingToSupabase ? DATA_MODES.SUPABASE : DATA_MODES.INDEXEDDB);
+    logImport(`Fonte de dados alterada para ${switchingToSupabase ? "Supabase" : "IndexedDB"}. Recarregando a página...`);
     toast.success(`Fonte de dados alterada para ${switchingToSupabase ? "Supabase" : "IndexedDB"}.`);
     window.location.reload();
   });
@@ -610,6 +643,8 @@ function setupDataMode() {
       return;
     }
     setSupabaseCredentials(urlInput.value, anonKeyInput.value);
+    const maskedKey = anonKeyInput.value.trim().slice(0, 8) + "...";
+    logImport(`Credenciais do Supabase salvas. URL: ${urlInput.value.trim()} | Chave: ${maskedKey}`);
     toast.success("Credenciais do Supabase salvas neste navegador.");
     render();
   });
@@ -618,10 +653,12 @@ function setupDataMode() {
     clearSupabaseCredentials();
     urlInput.value = "";
     anonKeyInput.value = "";
+    logImport("Credenciais do Supabase removidas.", "warning");
     toast.success("Credenciais do Supabase removidas.");
     render();
     if (getDataMode() === DATA_MODES.SUPABASE) {
       setDataMode(DATA_MODES.INDEXEDDB);
+      logImport("Fonte de dados voltou para IndexedDB porque o Supabase ficou sem credenciais. Recarregando...", "warning");
       toast.error("Fonte de dados voltou para IndexedDB porque o Supabase ficou sem credenciais.");
       window.location.reload();
     }

@@ -6,6 +6,8 @@ import { YouthRepository } from "../repositories/youth-repository.js";
 import { ImportHistoryRepository } from "../repositories/import-history-repository.js";
 import { YOUTH_STATUS, STORES } from "../config/constants.js";
 import { mirrorToOtherBackend, consumeSupabaseMirrorFailure } from "./dual-write-service.js";
+import { logImport } from "./import-log-service.js";
+import { getDataMode } from "./data-mode-service.js";
 
 export const EXPECTED_FIELDS = [
   { key: "codigo", label: "Código" },
@@ -276,11 +278,21 @@ export async function analyzeImport(mappedRows) {
 }
 
 export async function commitImport(rows, { duplicateStrategy = "ignorar", fileName, fileFormat, onProgress } = {}) {
-  const cities = await CityService.list();
-  const congregations = await CongregationService.list();
+  logImport(`Iniciando importação de ${rows.length} linha(s). Fonte de dados ativa: ${getDataMode() === "supabase" ? "Supabase" : "IndexedDB"}.`);
+
+  let cities, congregations, existingYouth;
+  try {
+    cities = await CityService.list();
+    congregations = await CongregationService.list();
+    existingYouth = await YouthRepository.list();
+    logImport(`Carregado: ${cities.length} cidade(s), ${congregations.length} congregação(ões), ${existingYouth.length} jovem(ns) existentes.`);
+  } catch (err) {
+    logImport(`Falha ao carregar dados existentes do banco ativo: ${err.message}`, "error");
+    throw err;
+  }
+
   const cityByName = new Map(cities.map((c) => [normalizeForComparison(c.nome), c]));
   const congByKey = new Map(congregations.map((c) => [`${normalizeForComparison(c.nome)}|${c.cidadeId}`, c]));
-  const existingYouth = await YouthRepository.list();
 
   let criados = 0;
   let atualizados = 0;
@@ -305,8 +317,15 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
     const cityKey = normalizeForComparison(row.cidade);
     let city = cityByName.get(cityKey);
     if (!city) {
-      city = await CityService.save({ nome: row.cidade, ativo: true });
+      logImport(`Criando cidade "${row.cidade}"...`);
+      try {
+        city = await CityService.save({ nome: row.cidade, ativo: true });
+      } catch (err) {
+        logImport(`Falha ao criar cidade "${row.cidade}": ${err.message}`, "error");
+        throw err;
+      }
       cityByName.set(cityKey, city);
+      logImport(`Cidade "${row.cidade}" criada.`);
       await mirrorToOtherBackend(STORES.CITIES, city);
     }
 
@@ -315,8 +334,15 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       const congKey = `${normalizeForComparison(row.congregacao)}|${city.id}`;
       congregation = congByKey.get(congKey);
       if (!congregation) {
-        congregation = await CongregationService.save({ nome: row.congregacao, cidadeId: city.id, ativo: true });
+        logImport(`Criando congregação "${row.congregacao}"...`);
+        try {
+          congregation = await CongregationService.save({ nome: row.congregacao, cidadeId: city.id, ativo: true });
+        } catch (err) {
+          logImport(`Falha ao criar congregação "${row.congregacao}": ${err.message}`, "error");
+          throw err;
+        }
         congByKey.set(congKey, congregation);
+        logImport(`Congregação "${row.congregacao}" criada.`);
         await mirrorToOtherBackend(STORES.CONGREGATIONS, congregation);
       }
     }
@@ -378,23 +404,32 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
     };
 
     let savedYouth = null;
-    if (matchIdx >= 0 && (row.rowStatus !== "duplicada" || duplicateStrategy === "atualizar")) {
-      savedYouth = await YouthRepository.save({ ...existingYouth[matchIdx], ...payload, updatedAt: new Date().toISOString() });
-      atualizados++;
-    } else if (matchIdx >= 0 && duplicateStrategy === "importar") {
-      savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-      criados++;
-    } else if (matchIdx < 0) {
-      savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-      criados++;
-    } else {
-      ignorados++;
+    try {
+      if (matchIdx >= 0 && (row.rowStatus !== "duplicada" || duplicateStrategy === "atualizar")) {
+        savedYouth = await YouthRepository.save({ ...existingYouth[matchIdx], ...payload, updatedAt: new Date().toISOString() });
+        atualizados++;
+        logImport(`Jovem "${row.nome}" atualizado.`);
+      } else if (matchIdx >= 0 && duplicateStrategy === "importar") {
+        savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        criados++;
+        logImport(`Jovem "${row.nome}" criado (duplicado importado mesmo assim).`);
+      } else if (matchIdx < 0) {
+        savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        criados++;
+        logImport(`Jovem "${row.nome}" criado.`);
+      } else {
+        ignorados++;
+      }
+    } catch (err) {
+      logImport(`Falha ao salvar jovem "${row.nome}": ${err.message}`, "error");
+      throw err;
     }
     if (savedYouth) await mirrorToOtherBackend(STORES.YOUTH, savedYouth);
     reportProgress();
   }
 
   const result = { criados, atualizados, ignorados, erros };
+  logImport(`Linhas processadas: ${criados} criado(s), ${atualizados} atualizado(s), ${ignorados} ignorado(s), ${erros} erro(s).`);
 
   const importHistoryEntry = {
     id: crypto.randomUUID(),
@@ -404,9 +439,15 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
     ...result,
     createdAt: new Date().toISOString(),
   };
-  await ImportHistoryRepository.save(importHistoryEntry);
+  try {
+    await ImportHistoryRepository.save(importHistoryEntry);
+  } catch (err) {
+    logImport(`Falha ao salvar o histórico de importação: ${err.message}`, "error");
+    throw err;
+  }
   await mirrorToOtherBackend(STORES.IMPORT_HISTORY, importHistoryEntry);
 
+  logImport("Importação concluída.");
   return { ...result, supabaseMirrorFailed: consumeSupabaseMirrorFailure() };
 }
 

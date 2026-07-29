@@ -84,6 +84,16 @@
             </div>
             <input type="file" id="file-input" accept=".csv,.xls,.xlsx" class="visually-hidden" />
             <div id="import-wizard"></div>
+
+            <div class="import-log-console" id="import-log-console">
+              <div class="import-log-console-header">
+                <span><i data-lucide="terminal" class="icon icon-sm"></i> Console de importação</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="clear-import-log-btn">Limpar</button>
+              </div>
+              <div class="import-log-console-body" id="import-log-console-body">
+                <div class="import-log-empty">Nenhum log ainda. Os eventos da importação (e da troca de fonte de dados) vão aparecer aqui.</div>
+              </div>
+            </div>
           </div>
         </section>
 
