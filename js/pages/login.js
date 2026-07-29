@@ -1,10 +1,12 @@
 import { login, isAuthenticated } from "../services/auth-service.js";
+import { APP_VERSION } from "../config/constants.js";
 import { qs, refreshIcons } from "../utils/dom-utils.js";
 
 if (isAuthenticated()) {
   window.location.href = "pages/dashboard.html";
 }
 
+qs("#app-version").textContent = `v${APP_VERSION}`;
 refreshIcons();
 
 const form = qs("#login-form");

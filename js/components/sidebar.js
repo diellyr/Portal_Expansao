@@ -1,14 +1,15 @@
 import { el, refreshIcons } from "../utils/dom-utils.js";
-import { NAV_ITEMS, APP_NAME, APP_SUBTITLE } from "../config/constants.js";
+import { NAV_ITEMS, APP_NAME, APP_SUBTITLE, APP_VERSION } from "../config/constants.js";
 
 export function renderSidebar(container, activeKey) {
   container.innerHTML = "";
 
   const brand = el("div", { class: "sidebar-brand" }, [
-    el("div", { class: "sidebar-brand-mark" }, "PE"),
+    el("div", { class: "sidebar-brand-mark" }, [el("img", { src: "../assets/images/logo.png", alt: APP_NAME })]),
     el("div", { class: "sidebar-brand-text" }, [
-      el("div", { class: "sidebar-brand-title" }, APP_NAME),
-      el("div", { class: "sidebar-brand-subtitle" }, APP_SUBTITLE),
+      el("div", { class: "sidebar-brand-title", title: APP_NAME }, APP_NAME),
+      el("div", { class: "sidebar-brand-subtitle", title: APP_SUBTITLE }, APP_SUBTITLE),
+      el("div", { class: "sidebar-brand-version" }, `v${APP_VERSION}`),
     ]),
   ]);
 

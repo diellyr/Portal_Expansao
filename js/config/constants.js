@@ -1,5 +1,7 @@
 export const APP_NAME = "Portal Expansão";
 export const APP_SUBTITLE = "Gestão Regional da Juventude";
+// Keep this in sync with version.md at the repository root.
+export const APP_VERSION = "1.0.0";
 
 export const DB_NAME = "portal_expansao_db";
 export const DB_VERSION = 1;
