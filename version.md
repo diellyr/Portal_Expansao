@@ -1,12 +1,15 @@
 # Versão
 
-**1.2.0**
+**1.2.1**
 
 Exibida na interface logo abaixo do logotipo (barra lateral e tela de login).
 Mantenha este arquivo sincronizado com `APP_VERSION` em `js/config/constants.js`.
 
 ## Histórico
 
+- **1.2.1** — Formulário em Administração → Fonte de dados para configurar a
+  URL e a chave anon do Supabase direto pela tela (salvo no navegador),
+  sem precisar editar `js/config/supabase-config.js`.
 - **1.2.0** — Integração opcional com Supabase: chave seletora em
   Administração para alternar entre IndexedDB e Supabase, e importação de
   planilhas passando a gravar em ambos os bancos simultaneamente (modo
