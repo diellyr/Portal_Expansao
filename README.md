@@ -1,6 +1,6 @@
 # Portal Expansão
 
-**Gestão Regional da Juventude**
+**Gestão Regional**
 
 Versão atual: consulte [`version.md`](version.md) (também exibida na interface, logo abaixo do logotipo na barra lateral e na tela de login).
 
@@ -49,6 +49,9 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 - **Importação de planilhas** (CSV, XLS, XLSX) com mapeamento manual de colunas, detecção de cabeçalhos alternativos, normalização de datas/booleanos/textos, detecção de duplicados, criação assistida de cidades/congregações novas e prévia detalhada antes de confirmar.
 - **Histórico de importações**, **backup/restauração em JSON**, **exportação de jovens em CSV/Excel**, **dados de demonstração** (carregar/remover) e **zona de perigo** com exclusões protegidas por confirmação.
 - **Responsivo** (celular, tablet, notebook, desktop) e com cuidados de **acessibilidade** (HTML semântico, navegação por teclado, `aria-label`, `aria-live`, tabelas equivalentes aos gráficos para leitores de tela).
+- **Tema claro/escuro** com chave seletora na barra superior (persistido em `localStorage`).
+- **Alertas** (sino na barra superior) com aniversariantes do dia, próximos eventos e cadastros incompletos, calculados a partir dos dados reais.
+- **Idioma** da interface (Português, Espanhol, Inglês) selecionável na barra superior — a tradução cobre a navegação, a barra superior e a tela de login; o conteúdo específico de cada página permanece em português nesta versão.
 
 ## Tecnologias
 

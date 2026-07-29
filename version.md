@@ -1,12 +1,16 @@
 # Versão
 
-**1.0.0**
+**1.1.0**
 
 Exibida na interface logo abaixo do logotipo (barra lateral e tela de login).
 Mantenha este arquivo sincronizado com `APP_VERSION` em `js/config/constants.js`.
 
 ## Histórico
 
+- **1.1.0** — Tema claro/escuro (chave seletora na barra superior), alertas
+  reais no sino de notificações (aniversariantes do dia, próximos eventos,
+  cadastros incompletos) e seletor de idioma (Português/Espanhol/Inglês)
+  para a navegação, barra superior e tela de login.
 - **1.0.0** — MVP completo: dashboard com filtros globais, demografia (sexo,
   igreja, aniversariantes) e indicadores anuais; cadastro de cidades,
   congregações, jovens (com foto e ficha digital) e eventos; relatórios;
