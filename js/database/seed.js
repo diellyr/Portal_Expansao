@@ -85,14 +85,17 @@ export function generateDemoData() {
     const prega = randomBool(0.25);
     const canta = randomBool(0.35);
     const hasInstrument = randomBool(0.3);
+    const sexo = randomBool(0.92) ? (randomBool(0.5) ? "masculino" : "feminino") : "";
+    const semIgreja = randomBool(0.06);
     youth.push({
       id: makeId(),
       nome: `${randomItem(FIRST_NAMES)} ${randomItem(LAST_NAMES)}`,
       dataNascimento: hasBirthDate ? randomDateBetween(birthYear, birthYear) : null,
+      sexo,
       telefone: randomBool(0.85) ? "(13) 9" + String(70000000 + i * 333).padStart(8, "0") : "",
       bairro: randomItem(NEIGHBORHOODS),
       cidadeId: congregation.cidadeId,
-      congregacaoId: congregation.id,
+      congregacaoId: semIgreja ? null : congregation.id,
       status,
       nomePai: randomBool(0.7) ? `${randomItem(FIRST_NAMES)} ${randomItem(LAST_NAMES)}` : "",
       nomeMae: randomBool(0.8) ? `${randomItem(FIRST_NAMES)} ${randomItem(LAST_NAMES)}` : "",

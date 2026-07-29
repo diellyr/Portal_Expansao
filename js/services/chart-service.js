@@ -89,6 +89,41 @@ export function createBarChart(canvasEl, { labels, values, unitLabel, horizontal
   return chart;
 }
 
+export function createLineChart(canvasEl, { labels, values, unitLabel }) {
+  destroyChart(canvasEl.id);
+  const chart = new window.Chart(canvasEl, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: values,
+          borderColor: "#1d4ed8",
+          backgroundColor: "rgba(29, 78, 216, 0.12)",
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: baseTooltip(unitLabel),
+      },
+      scales: {
+        x: { ticks: { autoSkip: true, maxRotation: 0 } },
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
+  });
+  registry.set(canvasEl.id, chart);
+  return chart;
+}
+
 export function updateChart(canvasId, { labels, values }) {
   const chart = registry.get(canvasId);
   if (!chart) return;

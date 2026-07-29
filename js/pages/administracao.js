@@ -210,8 +210,8 @@ function renderMappingStep(headers, records) {
           onClick: async () => {
             const mapping = {};
             for (const field of EXPECTED_FIELDS) mapping[field.key] = selects[field.key].value || null;
-            if (!mapping.nome || !mapping.cidade || !mapping.congregacao) {
-              toast.error("Mapeie ao menos os campos obrigatórios: Nome, Cidade e Congregação.");
+            if (!mapping.nome || !mapping.cidade) {
+              toast.error("Mapeie ao menos os campos obrigatórios: Nome e Cidade.");
               return;
             }
             const mapped = mapRecords(records, mapping);
@@ -358,7 +358,7 @@ function setupTemplates() {
   qs("#download-csv-template").addEventListener("click", () => {
     const headers = EXPECTED_FIELDS.map((f) => f.key);
     const example = {
-      codigo: "1", nome: "Maria Silva", data_nascimento: "15/03/2005", naturalidade: "Praia Grande - SP",
+      codigo: "1", nome: "Maria Silva", data_nascimento: "15/03/2005", naturalidade: "Praia Grande - SP", sexo: "feminino",
       telefone: "(13) 99999-0000", celular: "(13) 98888-0000", endereco: "Rua da Amizade", numero: "185",
       bairro: "Centro", cep: "11700-000", cidade: "Praia Grande", congregacao: "Praia Grande - Sede", status: "ativo",
       rg: "99.999.999-9", orgao_emissor: "SSP", cpf: "999.999.999-99", escolaridade: "Superior completo",
@@ -376,7 +376,7 @@ function setupTemplates() {
   qs("#download-excel-template").addEventListener("click", () => {
     if (!window.XLSX) return toast.error("Biblioteca SheetJS não carregada.");
     const example = {
-      Código: "1", Nome: "Maria Silva", "Data de Nascimento": "15/03/2005", Naturalidade: "Praia Grande - SP",
+      Código: "1", Nome: "Maria Silva", "Data de Nascimento": "15/03/2005", Naturalidade: "Praia Grande - SP", Sexo: "feminino",
       Telefone: "(13) 99999-0000", Celular: "(13) 98888-0000", Endereço: "Rua da Amizade", Número: "185",
       Bairro: "Centro", CEP: "11700-000", Cidade: "Praia Grande", Congregação: "Praia Grande - Sede", Status: "ativo",
       RG: "99.999.999-9", "Órgão Emissor": "SSP", CPF: "999.999.999-99", Escolaridade: "Superior completo",

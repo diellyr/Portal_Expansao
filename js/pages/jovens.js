@@ -13,7 +13,7 @@ import { createPhotoUpload } from "../components/photo-upload.js";
 import { el, qs, debounce, refreshIcons } from "../utils/dom-utils.js";
 import { calculateAge, formatDateBR } from "../utils/dates.js";
 import { formatBoolean } from "../utils/formatters.js";
-import { YOUTH_STATUS_LABELS, AGE_RANGES, TIPO_ADMISSAO_LABELS } from "../config/constants.js";
+import { YOUTH_STATUS_LABELS, AGE_RANGES, TIPO_ADMISSAO_LABELS, SEXO_LABELS } from "../config/constants.js";
 
 const ok = await bootstrapPage({ activeKey: "jovens", title: "Jovens" });
 if (ok) init();
@@ -104,6 +104,7 @@ function cityName(id) {
   return cities.find((c) => c.id === id)?.nome || "—";
 }
 function congName(id) {
+  if (!id) return "Sem igreja cadastrada";
   return congregations.find((c) => c.id === id)?.nome || "—";
 }
 
@@ -202,6 +203,7 @@ function openYouthDetails(youth) {
     detailItem("Idade", youth.idade === null ? "Não informado" : `${youth.idade} anos`),
     detailItem("Data de nascimento", formatDateBR(youth.dataNascimento)),
     detailItem("Naturalidade", youth.naturalidade || "Não informado"),
+    detailItem("Sexo", SEXO_LABELS[youth.sexo] || "Não informado"),
     detailItem("Telefone", youth.telefone || "Não informado"),
     detailItem("Celular", youth.celular || "Não informado"),
     detailItem("Endereço", youth.endereco || "Não informado"),
@@ -271,7 +273,7 @@ async function openYouthForm(youth) {
     codigo: await YouthService.getNextCode(),
     nome: "", dataNascimento: "", telefone: "", celular: "", bairro: "", endereco: "", numero: "", cep: "",
     naturalidade: "", rg: "", orgaoEmissor: "", cpf: "", cidadeId: cities[0]?.id || "", congregacaoId: "",
-    status: "ativo", escolaridade: "", profissao: "", cargo: "", conjuge: "",
+    status: "ativo", sexo: "", escolaridade: "", profissao: "", cargo: "", conjuge: "",
     nomePai: "", nomeMae: "", pastor: "", conselheiroLocal: "", conselheiroCidade: "",
     dataBatismoAguas: "", batizadoEspiritoSanto: false, instrumento: "", prega: false, canta: false,
     outrosTalentos: "", qtd: "", estadoCivil: "", outroEstadoCivil: "", liderExpansao: false, seLider: "", qualDepartamento: "",
@@ -287,6 +289,7 @@ async function openYouthForm(youth) {
   function refreshCongregationOptions() {
     const options = availableCongregations(congregations, citySelect.value);
     congSelect.innerHTML = "";
+    congSelect.appendChild(new Option("Sem igreja cadastrada", "", false, !data.congregacaoId));
     options.forEach((c) => congSelect.appendChild(new Option(c.nome, c.id, false, c.id === data.congregacaoId)));
   }
   refreshCongregationOptions();
@@ -296,6 +299,15 @@ async function openYouthForm(youth) {
     "select",
     { id: "field-status", class: "form-control" },
     Object.entries(YOUTH_STATUS_LABELS).map(([key, label]) => new Option(label, key, false, key === data.status))
+  );
+
+  const sexoSelect = el(
+    "select",
+    { id: "field-sexo", class: "form-control" },
+    [
+      new Option("Não informado", "", false, !data.sexo),
+      ...Object.entries(SEXO_LABELS).map(([key, label]) => new Option(label, key, false, key === data.sexo)),
+    ]
   );
 
   const tipoAdmissaoSelect = el(
@@ -323,10 +335,11 @@ async function openYouthForm(youth) {
       field("field-nome", "Nome completo", textInput("field-nome", data.nome), true),
       field("field-dataNascimento", "Data de nascimento", textInput("field-dataNascimento", data.dataNascimento, "date")),
       field("field-naturalidade", "Naturalidade", textInput("field-naturalidade", data.naturalidade)),
+      field("field-sexo", "Sexo", sexoSelect),
       field("field-telefone", "Telefone", textInput("field-telefone", data.telefone)),
       field("field-celular", "Celular", textInput("field-celular", data.celular)),
       field("field-cidadeId", "Cidade", citySelect, true),
-      field("field-congregacaoId", "Congregação", congSelect, true),
+      field("field-congregacaoId", "Congregação", congSelect),
       field("field-status", "Status", statusSelect),
     ]),
     el("div", { class: "form-section-title" }, "Endereço"),
@@ -412,6 +425,7 @@ async function openYouthForm(youth) {
             cidadeId: qs("#field-cidadeId", form).value,
             congregacaoId: qs("#field-congregacaoId", form).value,
             status: qs("#field-status", form).value,
+            sexo: qs("#field-sexo", form).value,
             dataEntrada: qs("#field-dataEntrada", form).value,
             rg: qs("#field-rg", form).value,
             orgaoEmissor: qs("#field-orgaoEmissor", form).value,

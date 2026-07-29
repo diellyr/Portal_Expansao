@@ -32,7 +32,8 @@ export const YouthService = {
       telefone: data.telefone?.trim() || "",
       bairro: data.bairro?.trim() || "",
       cidadeId: data.cidadeId,
-      congregacaoId: data.congregacaoId,
+      congregacaoId: data.congregacaoId || null,
+      sexo: data.sexo || "",
       status: data.status || "ativo",
       nomePai: data.nomePai?.trim() || "",
       nomeMae: data.nomeMae?.trim() || "",
@@ -93,7 +94,6 @@ export const YouthService = {
     const missing = [];
     if (!youth.dataNascimento) missing.push("Data de nascimento");
     if (!youth.cidadeId) missing.push("Cidade");
-    if (!youth.congregacaoId) missing.push("Congregação");
     if (!youth.telefone) missing.push("Telefone");
     if (!youth.pastor) missing.push("Pastor");
     if (!youth.conselheiroLocal) missing.push("Conselheiro");

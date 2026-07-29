@@ -1,5 +1,5 @@
 import { el, refreshIcons } from "../utils/dom-utils.js";
-import { createPieChart, createBarChart, destroyChart, setCategoryClickHandler } from "../services/chart-service.js";
+import { createPieChart, createBarChart, createLineChart, destroyChart, setCategoryClickHandler } from "../services/chart-service.js";
 import { emptyState } from "./empty-state.js";
 import { formatNumber, formatPercent } from "../utils/formatters.js";
 
@@ -81,6 +81,8 @@ export function createChartCard({ title, description, defaultType = "pie", toggl
     const total = currentValues.reduce((a, b) => a + b, 0);
     if (currentType === "pie") {
       createPieChart(canvas, { labels: currentLabels, values: currentValues, unitLabel });
+    } else if (currentType === "line") {
+      createLineChart(canvas, { labels: currentLabels, values: currentValues, unitLabel });
     } else {
       createBarChart(canvas, { labels: currentLabels, values: currentValues, unitLabel, horizontal: currentLabels.length > 6 });
     }

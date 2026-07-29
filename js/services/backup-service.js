@@ -9,7 +9,7 @@ import { generateDemoData } from "../database/seed.js";
 import { toCSV } from "../parsers/csv-parser.js";
 import { downloadJSON, downloadCSV } from "../utils/file-utils.js";
 import { formatBoolean } from "../utils/formatters.js";
-import { YOUTH_STATUS_LABELS } from "../config/constants.js";
+import { YOUTH_STATUS_LABELS, SEXO_LABELS } from "../config/constants.js";
 
 export const BACKUP_VERSION = 1;
 
@@ -81,7 +81,7 @@ export const BackupService = {
     const cityMap = Object.fromEntries(cities.map((c) => [c.id, c.nome]));
     const congMap = Object.fromEntries(congregations.map((c) => [c.id, c.nome]));
     const headers = [
-      "codigo", "nome", "data_nascimento", "naturalidade", "telefone", "celular",
+      "codigo", "nome", "data_nascimento", "naturalidade", "sexo", "telefone", "celular",
       "endereco", "numero", "bairro", "cep", "cidade", "congregacao", "status",
       "rg", "orgao_emissor", "cpf", "escolaridade", "profissao", "cargo",
       "estado_civil", "outro_estado_civil", "conjuge",
@@ -95,6 +95,7 @@ export const BackupService = {
       nome: y.nome,
       data_nascimento: y.dataNascimento || "",
       naturalidade: y.naturalidade || "",
+      sexo: SEXO_LABELS[y.sexo] || "",
       telefone: y.telefone || "",
       celular: y.celular || "",
       endereco: y.endereco || "",
@@ -143,6 +144,7 @@ export const BackupService = {
       Nome: y.nome,
       "Data de Nascimento": y.dataNascimento || "",
       Naturalidade: y.naturalidade || "",
+      Sexo: SEXO_LABELS[y.sexo] || "",
       Telefone: y.telefone || "",
       Celular: y.celular || "",
       Endereço: y.endereco || "",
