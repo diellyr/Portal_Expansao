@@ -24,6 +24,32 @@
           <p class="page-header-subtitle">Importação de dados, backup, dados de demonstração e zona de perigo.</p>
         </div>
 
+        <section aria-label="Fonte de dados">
+          <h3 class="section-title"><i data-lucide="database" class="icon"></i> Fonte de dados</h3>
+          <div class="surface" style="padding: var(--space-5);">
+            <div class="row-wrap gap-3" style="align-items:center;">
+              <span>IndexedDB (local)</span>
+              <button
+                type="button"
+                id="data-mode-toggle"
+                class="data-mode-toggle"
+                role="switch"
+                aria-checked="false"
+                aria-label="Alternar entre IndexedDB e Supabase"
+              >
+                <span class="data-mode-toggle-thumb"></span>
+              </button>
+              <span>Supabase</span>
+              <span class="badge" id="supabase-status-badge"></span>
+            </div>
+            <p class="text-muted" style="margin-top: var(--space-3); margin-bottom: 0;">
+              Define qual banco o sistema usa no dia a dia (dashboard, cadastros, relatórios). Ao <strong>importar uma planilha</strong>,
+              os registros são sempre gravados nos dois bancos — IndexedDB e Supabase — independentemente da opção escolhida aqui,
+              para que os dois fiquem sincronizados enquanto o Supabase estiver em teste.
+            </p>
+          </div>
+        </section>
+
         <section aria-label="Importação de dados">
           <h3 class="section-title"><i data-lucide="upload" class="icon"></i> Importação de dados</h3>
           <div class="surface" style="padding: var(--space-5);">

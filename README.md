@@ -30,7 +30,7 @@ Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado c
 - [Backup e restauração](#backup-e-restauração)
 - [Zona de perigo](#zona-de-perigo)
 - [Limitações do MVP](#limitações-do-mvp)
-- [Futura migração para Supabase](#futura-migração-para-supabase)
+- [Integração com Supabase (modo desenvolvimento)](#integração-com-supabase-modo-desenvolvimento)
 - [Aviso sobre dados sensíveis](#aviso-sobre-dados-sensíveis)
 
 ---
@@ -52,6 +52,7 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 - **Tema claro/escuro** com chave seletora na barra superior (persistido em `localStorage`).
 - **Alertas** (sino na barra superior) com aniversariantes do dia, próximos eventos e cadastros incompletos, calculados a partir dos dados reais.
 - **Idioma** da interface (Português, Espanhol, Inglês) selecionável na barra superior — a tradução cobre a navegação, a barra superior e a tela de login; o conteúdo específico de cada página permanece em português nesta versão.
+- **Fonte de dados alternável** (IndexedDB ou Supabase) em Administração, para testar a migração para um banco real — veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento).
 
 ## Tecnologias
 
@@ -227,19 +228,48 @@ Disponível em Administração, com exclusões granulares (somente jovens, somen
 - A exclusão de uma cidade ou congregação pelo formulário de cadastro **não** remove em cascata os registros vinculados (para isso, use a Zona de Perigo → "Apagar dados de uma cidade").
 - Volumes muito grandes de dados podem impactar a performance do IndexedDB no navegador, já que todo o processamento acontece no cliente.
 
-## Futura migração para Supabase
+## Integração com Supabase (modo desenvolvimento)
 
-A camada de repositories foi desenhada para ser o único ponto de substituição:
+Além do IndexedDB, o sistema já sabe falar com um projeto Supabase (Postgres) como banco alternativo, útil para testar a migração antes de trocar de vez.
+
+### 1. Criar as tabelas no Supabase
+
+No **SQL Editor** do seu projeto Supabase, rode o script de criação de tabelas (cidades, congregações, jovens, eventos, histórico de importações e configurações) — os nomes de tabela e coluna são o equivalente em `snake_case` dos campos usados no app (ex.: `cidadeId` → `cidade_id`).
+
+> Se você já pediu esse script antes nesta conversa, é o mesmo — as tabelas e nomes de coluna não mudaram.
+
+### 2. Configurar as credenciais
+
+Edite `js/config/supabase-config.js` e preencha:
+
+```js
+export const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+export const SUPABASE_ANON_KEY = "sua-chave-anon-public";
+```
+
+Ambos os valores ficam em **Project Settings → API** no painel do Supabase. A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de **Row Level Security (RLS)** nas tabelas, não do sigilo da chave. Enquanto estiver só testando, é comum deixar RLS desligado; antes de usar com dados reais, ative RLS e crie políticas explícitas.
+
+### 3. Alternar entre IndexedDB e Supabase
+
+Em **Administração → Fonte de dados** há uma chave seletora para escolher qual banco o sistema usa no dia a dia (dashboard, cadastros, relatórios). Ela fica salva no navegador (não é uma configuração do projeto) e é bloqueada se você tentar ativar o Supabase antes de preencher as credenciais.
+
+### 4. Importação alimenta os dois bancos
+
+Independentemente da chave seletora, toda vez que uma planilha é importada (Administração → Importação de dados), cada cidade, congregação e jovem criado ou atualizado é gravado **nos dois bancos** — IndexedDB e Supabase — para que fiquem sincronizados enquanto o Supabase ainda está em teste. Se o Supabase não estiver configurado, a importação continua funcionando normalmente só no IndexedDB (o espelhamento é ignorado silenciosamente); se estiver configurado mas alguma gravação falhar, um aviso aparece ao final da importação.
+
+Fora da importação (cadastro manual, backup/restauração, dados de demonstração, zona de perigo), cada operação afeta **apenas** o banco ativo no momento — não há espelhamento automático nesses fluxos.
+
+### Arquitetura da troca
+
+A camada de repositories permanece o único ponto de acesso ao banco — cada `*Repository` decide, a cada chamada, se fala com IndexedDB (`js/database/db.js`) ou Supabase (`js/database/supabase-db.js`) consultando `js/services/data-mode-service.js`. Nenhuma página, componente ou gráfico precisa saber qual banco está ativo.
 
 ```
 YouthService
   ↓
-IndexedDBYouthRepository   (hoje)
-  ↓
-SupabaseYouthRepository    (futuro)
+YouthRepository → getDataMode() → IndexedDB  ou  Supabase
 ```
 
-Para migrar, basta criar `Supabase*Repository` equivalentes (mesmas assinaturas de método: `list`, `getById`, `save`, `remove`, etc.) em `js/repositories/`, e trocar a importação usada pelos services correspondentes. Nenhuma página, componente, gráfico ou formulário precisa ser alterado, pois todos dependem apenas dos services — nunca do banco diretamente. A autenticação demonstrativa (`js/services/auth-service.js`) também será substituída por Supabase Auth nesse momento.
+A autenticação continua demonstrativa (`js/services/auth-service.js`) — a troca por Supabase Auth fica para uma etapa futura, fora do escopo desta integração.
 
 ## Aviso sobre dados sensíveis
 

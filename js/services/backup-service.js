@@ -4,7 +4,9 @@ import { YouthRepository } from "../repositories/youth-repository.js";
 import { EventRepository } from "../repositories/event-repository.js";
 import { ImportHistoryRepository } from "../repositories/import-history-repository.js";
 import { SettingsRepository } from "../repositories/settings-repository.js";
-import { clearAllStores, clearStore, STORES } from "../database/db.js";
+import { clearAllStores as clearAllIndexedDbStores, clearStore as clearIndexedDbStore, STORES } from "../database/db.js";
+import * as supabaseDb from "../database/supabase-db.js";
+import { isSupabaseMode } from "./data-mode-service.js";
 import { generateDemoData } from "../database/seed.js";
 import { toCSV } from "../parsers/csv-parser.js";
 import { downloadJSON, downloadCSV } from "../utils/file-utils.js";
@@ -12,6 +14,14 @@ import { formatBoolean } from "../utils/formatters.js";
 import { YOUTH_STATUS_LABELS, SEXO_LABELS } from "../config/constants.js";
 
 export const BACKUP_VERSION = 1;
+
+async function clearStore(table) {
+  return isSupabaseMode() ? supabaseDb.clearStore(table) : clearIndexedDbStore(table);
+}
+
+async function clearAllStores() {
+  return isSupabaseMode() ? supabaseDb.clearAllStores() : clearAllIndexedDbStores();
+}
 
 export const BackupService = {
   async exportBackup() {
