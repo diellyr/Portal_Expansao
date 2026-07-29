@@ -332,9 +332,20 @@ function renderPreviewStep() {
           type: "button",
           class: "btn btn-primary",
           onClick: async () => {
-            const result = await commitImport(rows, { duplicateStrategy, fileName: currentFileName, fileFormat: currentFileFormat });
-            renderResultStep(result);
-            await loadHistory();
+            const updateProgress = renderProgressStep(rows.length);
+            try {
+              const result = await commitImport(rows, {
+                duplicateStrategy,
+                fileName: currentFileName,
+                fileFormat: currentFileFormat,
+                onProgress: ({ processed, total }) => updateProgress(processed, total),
+              });
+              renderResultStep(result);
+              await loadHistory();
+            } catch (err) {
+              console.error("Falha ao importar:", err);
+              renderErrorStep(err);
+            }
           },
         },
         "Confirmar importação"
@@ -346,6 +357,55 @@ function renderPreviewStep() {
 
 function summaryTile(value, label) {
   return el("div", { class: "summary-tile" }, [el("div", { class: "summary-tile-value" }, String(value)), el("div", { class: "summary-tile-label" }, label)]);
+}
+
+function renderProgressStep(total) {
+  const container = qs("#import-wizard");
+  container.innerHTML = "";
+  container.appendChild(wizardStepsBar(2));
+
+  const percentEl = el("span", { class: "import-progress-percent" }, "0%");
+  const countEl = el("span", {}, `0 de ${total} processados`);
+  const fillEl = el("div", { class: "progress-fill", style: "width: 0%;" });
+
+  container.appendChild(
+    el("div", { class: "import-progress" }, [
+      el("div", { class: "import-progress-label" }, [el("span", {}, "Importando registros, aguarde..."), percentEl]),
+      el("div", { class: "progress-track" }, [fillEl]),
+      el("p", { class: "import-progress-note" }, [countEl]),
+    ])
+  );
+  refreshIcons();
+
+  return (processed, totalNow) => {
+    const pct = totalNow > 0 ? Math.round((processed / totalNow) * 100) : 100;
+    fillEl.style.width = `${pct}%`;
+    percentEl.textContent = `${pct}%`;
+    countEl.textContent = `${processed} de ${totalNow} processados`;
+  };
+}
+
+function renderErrorStep(err) {
+  const container = qs("#import-wizard");
+  container.innerHTML = "";
+  container.appendChild(wizardStepsBar(2));
+  container.appendChild(
+    el("div", { class: "alert alert-danger" }, [
+      el("i", { "data-lucide": "x-circle", class: "icon icon-sm" }),
+      el("div", {}, [
+        el("strong", {}, "Não foi possível concluir a importação."),
+        el("p", { style: "margin: var(--space-1) 0 0;" }, err?.message || "Erro desconhecido."),
+      ]),
+    ])
+  );
+  container.appendChild(
+    el("div", { class: "form-actions" }, [
+      el("button", { type: "button", class: "btn btn-secondary", onClick: () => (container.innerHTML = "") }, "Cancelar"),
+      el("button", { type: "button", class: "btn btn-primary", onClick: () => renderPreviewStep() }, "Tentar novamente"),
+    ])
+  );
+  toast.error("A importação falhou. Veja o motivo na tela.");
+  refreshIcons();
 }
 
 function renderResultStep(result) {
