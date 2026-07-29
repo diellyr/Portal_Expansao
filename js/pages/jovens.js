@@ -12,7 +12,7 @@ import { toast } from "../components/toast.js";
 import { el, qs, debounce, refreshIcons } from "../utils/dom-utils.js";
 import { calculateAge, formatDateBR } from "../utils/dates.js";
 import { formatBoolean } from "../utils/formatters.js";
-import { YOUTH_STATUS_LABELS, AGE_RANGES } from "../config/constants.js";
+import { YOUTH_STATUS_LABELS, AGE_RANGES, TIPO_ADMISSAO_LABELS } from "../config/constants.js";
 
 const ok = await bootstrapPage({ activeKey: "jovens", title: "Jovens" });
 if (ok) init();
@@ -119,6 +119,7 @@ function render() {
 
   renderDataTable(qs("#youth-table"), {
     columns: [
+      { key: "codigo", label: "Código", render: (r) => r.codigo || "—" },
       { key: "nome", label: "Nome" },
       { key: "idade", label: "Idade", render: (r) => (r.idade === null ? "Não informado" : `${r.idade} anos`) },
       { key: "cidadeId", label: "Cidade", render: (r) => cityName(r.cidadeId) },
@@ -165,15 +166,30 @@ function detailItem(label, value) {
 
 function openYouthDetails(youth) {
   const body = el("div", { class: "detail-grid" }, [
+    detailItem("Código", youth.codigo || "Não informado"),
     detailItem("Idade", youth.idade === null ? "Não informado" : `${youth.idade} anos`),
     detailItem("Data de nascimento", formatDateBR(youth.dataNascimento)),
+    detailItem("Naturalidade", youth.naturalidade || "Não informado"),
     detailItem("Telefone", youth.telefone || "Não informado"),
+    detailItem("Celular", youth.celular || "Não informado"),
+    detailItem("Endereço", youth.endereco || "Não informado"),
+    detailItem("Número", youth.numero || "Não informado"),
     detailItem("Bairro", youth.bairro || "Não informado"),
+    detailItem("CEP", youth.cep || "Não informado"),
     detailItem("Cidade", cityName(youth.cidadeId)),
     detailItem("Congregação", congName(youth.congregacaoId)),
     detailItem("Status", YOUTH_STATUS_LABELS[youth.status]),
+    detailItem("RG", youth.rg || "Não informado"),
+    detailItem("Órgão emissor", youth.orgaoEmissor || "Não informado"),
+    detailItem("CPF", youth.cpf || "Não informado"),
+    detailItem("Escolaridade", youth.escolaridade || "Não informado"),
+    detailItem("Profissão", youth.profissao || "Não informado"),
+    detailItem("Estado civil", youth.estadoCivil || "Não informado"),
+    detailItem("Outro (qual)?", youth.outroEstadoCivil || "Não informado"),
+    detailItem("Cônjuge", youth.conjuge || "Não informado"),
     detailItem("Nome do pai", youth.nomePai || "Não informado"),
     detailItem("Nome da mãe", youth.nomeMae || "Não informado"),
+    detailItem("Cargo", youth.cargo || "Não informado"),
     detailItem("Pastor", youth.pastor || "Não informado"),
     detailItem("Conselheiro local", youth.conselheiroLocal || "Não informado"),
     detailItem("Conselheiro da cidade", youth.conselheiroCidade || "Não informado"),
@@ -184,10 +200,12 @@ function openYouthDetails(youth) {
     detailItem("Canta", formatBoolean(youth.canta)),
     detailItem("Outros talentos", youth.outrosTalentos || "Não informado"),
     detailItem("Qtd", youth.qtd || "Não informado"),
-    detailItem("Estado civil", youth.estadoCivil || "Não informado"),
     detailItem("Líder de Expansão?", formatBoolean(youth.liderExpansao)),
     detailItem("Se líder, qual?", youth.seLider || "Não informado"),
     detailItem("Qual departamento?", youth.qualDepartamento || "Não informado"),
+    detailItem("Nome do dirigente", youth.nomeDirigente || "Não informado"),
+    detailItem("Cadastro recebido por", youth.recebidoPor || "Não informado"),
+    detailItem("Tipo de admissão", TIPO_ADMISSAO_LABELS[youth.tipoAdmissao] || "Não informado"),
     detailItem("Observações", youth.observacoes || "Não informado"),
     detailItem("Data de entrada", formatDateBR(youth.dataEntrada)),
   ]);
@@ -213,13 +231,17 @@ function checkboxField(id, label, checked) {
   ]);
 }
 
-function openYouthForm(youth) {
+async function openYouthForm(youth) {
   const isEdit = !!youth;
   const data = youth || {
-    nome: "", dataNascimento: "", telefone: "", bairro: "", cidadeId: cities[0]?.id || "", congregacaoId: "",
-    status: "ativo", nomePai: "", nomeMae: "", pastor: "", conselheiroLocal: "", conselheiroCidade: "",
+    codigo: await YouthService.getNextCode(),
+    nome: "", dataNascimento: "", telefone: "", celular: "", bairro: "", endereco: "", numero: "", cep: "",
+    naturalidade: "", rg: "", orgaoEmissor: "", cpf: "", cidadeId: cities[0]?.id || "", congregacaoId: "",
+    status: "ativo", escolaridade: "", profissao: "", cargo: "", conjuge: "",
+    nomePai: "", nomeMae: "", pastor: "", conselheiroLocal: "", conselheiroCidade: "",
     dataBatismoAguas: "", batizadoEspiritoSanto: false, instrumento: "", prega: false, canta: false,
-    outrosTalentos: "", qtd: "", estadoCivil: "", liderExpansao: false, seLider: "", qualDepartamento: "",
+    outrosTalentos: "", qtd: "", estadoCivil: "", outroEstadoCivil: "", liderExpansao: false, seLider: "", qualDepartamento: "",
+    nomeDirigente: "", recebidoPor: "", tipoAdmissao: "",
     observacoes: "", dataEntrada: new Date().toISOString().slice(0, 10),
   };
 
@@ -240,20 +262,56 @@ function openYouthForm(youth) {
     Object.entries(YOUTH_STATUS_LABELS).map(([key, label]) => new Option(label, key, false, key === data.status))
   );
 
+  const tipoAdmissaoSelect = el(
+    "select",
+    { id: "field-tipoAdmissao", class: "form-control" },
+    [
+      new Option("Não informado", "", false, !data.tipoAdmissao),
+      ...Object.entries(TIPO_ADMISSAO_LABELS).map(([key, label]) => new Option(label, key, false, key === data.tipoAdmissao)),
+    ]
+  );
+
   const form = el("form", { novalidate: true }, [
+    el("div", { class: "form-section-title" }, "Registro do cadastro"),
+    el("div", { class: "form-grid" }, [
+      field("field-codigo", "Código", textInput("field-codigo", data.codigo)),
+      field("field-nomeDirigente", "Nome do dirigente", textInput("field-nomeDirigente", data.nomeDirigente)),
+      field("field-recebidoPor", "Cadastro recebido por", textInput("field-recebidoPor", data.recebidoPor)),
+      field("field-tipoAdmissao", "Tipo de admissão", tipoAdmissaoSelect),
+      field("field-dataEntrada", "Data de entrada", textInput("field-dataEntrada", data.dataEntrada, "date")),
+    ]),
     el("div", { class: "form-section-title" }, "Identificação"),
     el("div", { class: "form-grid" }, [
       field("field-nome", "Nome completo", textInput("field-nome", data.nome), true),
       field("field-dataNascimento", "Data de nascimento", textInput("field-dataNascimento", data.dataNascimento, "date")),
+      field("field-naturalidade", "Naturalidade", textInput("field-naturalidade", data.naturalidade)),
       field("field-telefone", "Telefone", textInput("field-telefone", data.telefone)),
-      field("field-bairro", "Bairro", textInput("field-bairro", data.bairro)),
+      field("field-celular", "Celular", textInput("field-celular", data.celular)),
       field("field-cidadeId", "Cidade", citySelect, true),
       field("field-congregacaoId", "Congregação", congSelect, true),
       field("field-status", "Status", statusSelect),
-      field("field-dataEntrada", "Data de entrada", textInput("field-dataEntrada", data.dataEntrada, "date")),
+    ]),
+    el("div", { class: "form-section-title" }, "Endereço"),
+    el("div", { class: "form-grid" }, [
+      field("field-endereco", "Endereço", textInput("field-endereco", data.endereco)),
+      field("field-numero", "Número", textInput("field-numero", data.numero)),
+      field("field-bairro", "Bairro", textInput("field-bairro", data.bairro)),
+      field("field-cep", "CEP", textInput("field-cep", data.cep)),
+    ]),
+    el("div", { class: "form-section-title" }, "Documentos e dados pessoais"),
+    el("div", { class: "form-grid" }, [
+      field("field-rg", "RG", textInput("field-rg", data.rg)),
+      field("field-orgaoEmissor", "Órgão emissor", textInput("field-orgaoEmissor", data.orgaoEmissor)),
+      field("field-cpf", "CPF", textInput("field-cpf", data.cpf)),
+      field("field-escolaridade", "Escolaridade", textInput("field-escolaridade", data.escolaridade)),
+      field("field-profissao", "Profissão", textInput("field-profissao", data.profissao)),
+      field("field-cargo", "Cargo", textInput("field-cargo", data.cargo)),
     ]),
     el("div", { class: "form-section-title" }, "Família e liderança"),
     el("div", { class: "form-grid" }, [
+      field("field-estadoCivil", "Estado civil", textInput("field-estadoCivil", data.estadoCivil)),
+      field("field-outroEstadoCivil", "Outro (qual)?", textInput("field-outroEstadoCivil", data.outroEstadoCivil)),
+      field("field-conjuge", "Cônjuge", textInput("field-conjuge", data.conjuge)),
       field("field-nomePai", "Nome do pai", textInput("field-nomePai", data.nomePai)),
       field("field-nomeMae", "Nome da mãe", textInput("field-nomeMae", data.nomeMae)),
       field("field-pastor", "Pastor", textInput("field-pastor", data.pastor)),
@@ -274,7 +332,6 @@ function openYouthForm(youth) {
     el("div", { class: "form-section-title" }, "Expansão e departamento"),
     el("div", { class: "form-grid" }, [
       field("field-qtd", "Qtd", textInput("field-qtd", data.qtd)),
-      field("field-estadoCivil", "Estado civil", textInput("field-estadoCivil", data.estadoCivil)),
       field("field-seLider", "Se líder, qual?", textInput("field-seLider", data.seLider)),
       field("field-qualDepartamento", "Qual departamento?", textInput("field-qualDepartamento", data.qualDepartamento)),
     ]),
@@ -300,14 +357,32 @@ function openYouthForm(youth) {
         onClick: async () => {
           const payload = {
             ...data,
+            codigo: qs("#field-codigo", form).value,
+            nomeDirigente: qs("#field-nomeDirigente", form).value,
+            recebidoPor: qs("#field-recebidoPor", form).value,
+            tipoAdmissao: qs("#field-tipoAdmissao", form).value,
             nome: qs("#field-nome", form).value,
             dataNascimento: qs("#field-dataNascimento", form).value || null,
+            naturalidade: qs("#field-naturalidade", form).value,
             telefone: qs("#field-telefone", form).value,
+            celular: qs("#field-celular", form).value,
+            endereco: qs("#field-endereco", form).value,
+            numero: qs("#field-numero", form).value,
             bairro: qs("#field-bairro", form).value,
+            cep: qs("#field-cep", form).value,
             cidadeId: qs("#field-cidadeId", form).value,
             congregacaoId: qs("#field-congregacaoId", form).value,
             status: qs("#field-status", form).value,
             dataEntrada: qs("#field-dataEntrada", form).value,
+            rg: qs("#field-rg", form).value,
+            orgaoEmissor: qs("#field-orgaoEmissor", form).value,
+            cpf: qs("#field-cpf", form).value,
+            escolaridade: qs("#field-escolaridade", form).value,
+            profissao: qs("#field-profissao", form).value,
+            cargo: qs("#field-cargo", form).value,
+            estadoCivil: qs("#field-estadoCivil", form).value,
+            outroEstadoCivil: qs("#field-outroEstadoCivil", form).value,
+            conjuge: qs("#field-conjuge", form).value,
             nomePai: qs("#field-nomePai", form).value,
             nomeMae: qs("#field-nomeMae", form).value,
             pastor: qs("#field-pastor", form).value,
@@ -317,7 +392,6 @@ function openYouthForm(youth) {
             instrumento: qs("#field-instrumento", form).value,
             outrosTalentos: qs("#field-outrosTalentos", form).value,
             qtd: qs("#field-qtd", form).value,
-            estadoCivil: qs("#field-estadoCivil", form).value,
             seLider: qs("#field-seLider", form).value,
             qualDepartamento: qs("#field-qualDepartamento", form).value,
             observacoes: qs("#field-observacoes", form).value,

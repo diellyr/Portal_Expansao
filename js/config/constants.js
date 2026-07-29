@@ -37,6 +37,20 @@ export const YOUTH_STATUS_LABELS = {
   inativo: "Inativo",
 };
 
+export const TIPO_ADMISSAO = {
+  BATISMO: "batismo",
+  TRANSFERENCIA: "transferencia",
+  ACLAMACAO: "aclamacao",
+  OUTRO: "outro",
+};
+
+export const TIPO_ADMISSAO_LABELS = {
+  batismo: "Batismo",
+  transferencia: "Transferência",
+  aclamacao: "Aclamação",
+  outro: "Outro",
+};
+
 export const YOUTH_STATUS_BADGE = {
   ativo: "success",
   visitante: "info",
