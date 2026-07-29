@@ -1,3 +1,5 @@
+import { stripLeadingNoiseRows } from "./row-utils.js";
+
 /**
  * Small dependency-free CSV parser supporting quoted fields, escaped quotes,
  * and both comma and semicolon delimiters (common in pt-BR exports).
@@ -46,7 +48,8 @@ export function parseCSV(text) {
     rows.push(row);
   }
 
-  const filteredRows = rows.filter((r) => r.some((cell) => cell.trim() !== ""));
+  const nonBlankRows = rows.filter((r) => r.some((cell) => cell.trim() !== ""));
+  const filteredRows = stripLeadingNoiseRows(nonBlankRows);
   if (!filteredRows.length) return { headers: [], records: [] };
 
   const headers = filteredRows[0].map((h) => h.trim());
@@ -62,9 +65,16 @@ export function parseCSV(text) {
 }
 
 function detectDelimiter(text) {
-  const firstLine = text.split(/\r?\n/, 1)[0] || "";
-  const commaCount = (firstLine.match(/,/g) || []).length;
-  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  // Scan the first several lines instead of only the first one, since a
+  // leading title/banner line (common in exported spreadsheets) may not
+  // contain the delimiter used by the actual header/data rows below it.
+  const lines = text.split(/\r?\n/).slice(0, 20);
+  let commaCount = 0;
+  let semicolonCount = 0;
+  for (const line of lines) {
+    commaCount += (line.match(/,/g) || []).length;
+    semicolonCount += (line.match(/;/g) || []).length;
+  }
   return semicolonCount > commaCount ? ";" : ",";
 }
 

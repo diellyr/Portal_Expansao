@@ -12,6 +12,22 @@ export function normalizeForComparison(value) {
     .replace(/[̀-ͯ]/g, "");
 }
 
+/**
+ * Like normalizeForComparison, but also strips punctuation (periods, commas,
+ * question marks...) and treats underscores as spaces, then collapses
+ * whitespace. Real-world spreadsheet headers vary a lot in punctuation
+ * ("QTD.", "ESTADO_CIVIL?", "SE_LÍDER,QUAL_DEPARTAMENTO?"...) — this keeps
+ * alias matching tolerant to that without loosening normalizeForComparison,
+ * which is also used for duplicate-detection keys elsewhere.
+ */
+export function normalizeHeader(value) {
+  return normalizeForComparison(value)
+    .replace(/_/g, " ")
+    .replace(/[.,;:!?()/]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function normalizeBoolean(value) {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "boolean") return value;
@@ -37,7 +53,7 @@ export function validateMappedRow(row) {
   }
   if (!row.data_nascimento) warnings.push("Data de nascimento não informada.");
   if (!normalizeText(row.telefone)) warnings.push("Telefone não informado.");
-  if (row.status && !row.statusValido) warnings.push(`Status "${row.status}" não reconhecido — será definido como "ativo".`);
+  if (row.status_raw && !row.statusValido) warnings.push(`Status "${row.status_raw}" não reconhecido — será definido como "ativo".`);
 
   let status = "valida";
   if (errors.length) status = "invalida";

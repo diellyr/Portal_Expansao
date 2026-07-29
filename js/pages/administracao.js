@@ -2,7 +2,7 @@ import { bootstrapPage } from "../app.js";
 import { CityService } from "../services/city-service.js";
 import { BackupService } from "../services/backup-service.js";
 import { ImportHistoryRepository } from "../repositories/import-history-repository.js";
-import { EXPECTED_FIELDS, suggestMapping, mapRecords, analyzeImport, commitImport, buildErrorsCSV } from "../services/import-service.js";
+import { EXPECTED_FIELDS, suggestMapping, mapRecords, analyzeImport, commitImport, buildErrorsCSV, diffHeaders } from "../services/import-service.js";
 import { parseCSV, toCSV } from "../parsers/csv-parser.js";
 import { readWorkbook, listSheetNames, parseSheet } from "../parsers/excel-parser.js";
 import { readFileAsText, readFileAsArrayBuffer, getFileExtension, downloadCSV } from "../utils/file-utils.js";
@@ -156,6 +156,34 @@ function renderMappingStep(headers, records) {
   const suggested = suggestMapping(headers);
   const selects = {};
 
+  const { missingFields, unrecognizedHeaders } = diffHeaders(headers, suggested);
+
+  if (missingFields.length) {
+    container.appendChild(
+      el("div", { class: "alert alert-warning" }, [
+        el("i", { "data-lucide": "alert-triangle", class: "icon icon-sm" }),
+        el(
+          "span",
+          {},
+          `Este arquivo não possui as colunas: ${missingFields.map((f) => f.label).join(", ")}. A importação pode continuar normalmente — esses campos ficarão em branco para as linhas importadas.`
+        ),
+      ])
+    );
+  }
+
+  if (unrecognizedHeaders.length) {
+    container.appendChild(
+      el("div", { class: "alert alert-info" }, [
+        el("i", { "data-lucide": "info", class: "icon icon-sm" }),
+        el(
+          "span",
+          {},
+          `Colunas do arquivo não reconhecidas automaticamente: ${unrecognizedHeaders.join(", ")}. Você pode mapeá-las manualmente abaixo, se corresponderem a algum campo esperado.`
+        ),
+      ])
+    );
+  }
+
   const grid = el(
     "div",
     { class: "form-grid" },
@@ -254,10 +282,10 @@ function renderPreviewStep() {
       { key: "cidade", label: "Cidade" },
       { key: "congregacao", label: "Congregação" },
       {
-        key: "status",
+        key: "rowStatus",
         label: "Status",
         sortable: false,
-        render: (r) => `<span class="badge badge-${statusBadgeForImport(r.status)}">${r.status}</span>`,
+        render: (r) => `<span class="badge badge-${statusBadgeForImport(r.rowStatus)}">${r.rowStatus}</span>`,
       },
       { key: "problemas", label: "Observações", sortable: false, render: (r) => [...r.errors, ...r.warnings].join(" | ") || "—" },
     ],
@@ -334,7 +362,9 @@ function setupTemplates() {
       data_nascimento: "15/03/2005", telefone: "(13) 99999-0000", status: "ativo",
       conselheiro_local: "João Souza", conselheiro_cidade: "Pedro Lima", pastor: "Pr. Carlos",
       pai: "José Silva", mae: "Ana Silva", data_batismo_aguas: "10/01/2020", batizado_espirito_santo: "sim",
-      instrumento: "violão", prega: "não", canta: "sim", outros_talentos: "", observacoes: "",
+      instrumento: "violão", prega: "não", canta: "sim", outros_talentos: "",
+      qtd: "1", estado_civil: "solteiro(a)", lider_expansao: "não", se_lider: "", qual_departamento: "louvor",
+      observacoes: "",
     };
     downloadCSV(toCSV([example], headers), "modelo-importacao-portal-expansao.csv");
   });
@@ -347,7 +377,9 @@ function setupTemplates() {
       "Conselheiro Local": "João Souza", "Conselheiro da Cidade": "Pedro Lima", Pastor: "Pr. Carlos",
       "Nome do Pai": "José Silva", "Nome da Mãe": "Ana Silva", "Data de Batismo nas Águas": "10/01/2020",
       "Batizado no Espírito Santo": "sim", Instrumento: "violão", Prega: "não", Canta: "sim",
-      "Outros Talentos": "", Observações: "",
+      "Outros Talentos": "",
+      Qtd: "1", "Estado Civil": "solteiro(a)", "Líder de Expansão?": "não", "Se líder, qual?": "", "Qual Departamento?": "louvor",
+      Observações: "",
     };
     const worksheet = window.XLSX.utils.json_to_sheet([example]);
     const workbook = window.XLSX.utils.book_new();

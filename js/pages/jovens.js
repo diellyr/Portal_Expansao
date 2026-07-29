@@ -183,6 +183,11 @@ function openYouthDetails(youth) {
     detailItem("Prega", formatBoolean(youth.prega)),
     detailItem("Canta", formatBoolean(youth.canta)),
     detailItem("Outros talentos", youth.outrosTalentos || "Não informado"),
+    detailItem("Qtd", youth.qtd || "Não informado"),
+    detailItem("Estado civil", youth.estadoCivil || "Não informado"),
+    detailItem("Líder de Expansão?", formatBoolean(youth.liderExpansao)),
+    detailItem("Se líder, qual?", youth.seLider || "Não informado"),
+    detailItem("Qual departamento?", youth.qualDepartamento || "Não informado"),
     detailItem("Observações", youth.observacoes || "Não informado"),
     detailItem("Data de entrada", formatDateBR(youth.dataEntrada)),
   ]);
@@ -214,7 +219,8 @@ function openYouthForm(youth) {
     nome: "", dataNascimento: "", telefone: "", bairro: "", cidadeId: cities[0]?.id || "", congregacaoId: "",
     status: "ativo", nomePai: "", nomeMae: "", pastor: "", conselheiroLocal: "", conselheiroCidade: "",
     dataBatismoAguas: "", batizadoEspiritoSanto: false, instrumento: "", prega: false, canta: false,
-    outrosTalentos: "", observacoes: "", dataEntrada: new Date().toISOString().slice(0, 10),
+    outrosTalentos: "", qtd: "", estadoCivil: "", liderExpansao: false, seLider: "", qualDepartamento: "",
+    observacoes: "", dataEntrada: new Date().toISOString().slice(0, 10),
   };
 
   const citySelect = el("select", { id: "field-cidadeId", class: "form-control" }, cities.map((c) => new Option(c.nome, c.id, false, c.id === data.cidadeId)));
@@ -265,6 +271,16 @@ function openYouthForm(youth) {
       checkboxField("field-prega", "Prega", data.prega),
       checkboxField("field-canta", "Canta", data.canta),
     ]),
+    el("div", { class: "form-section-title" }, "Expansão e departamento"),
+    el("div", { class: "form-grid" }, [
+      field("field-qtd", "Qtd", textInput("field-qtd", data.qtd)),
+      field("field-estadoCivil", "Estado civil", textInput("field-estadoCivil", data.estadoCivil)),
+      field("field-seLider", "Se líder, qual?", textInput("field-seLider", data.seLider)),
+      field("field-qualDepartamento", "Qual departamento?", textInput("field-qualDepartamento", data.qualDepartamento)),
+    ]),
+    el("div", { class: "row-wrap gap-4", style: "margin: var(--space-2) 0 var(--space-4);" }, [
+      checkboxField("field-liderExpansao", "Líder de Expansão?", data.liderExpansao),
+    ]),
     el("div", { class: "form-group" }, [
       el("label", { for: "field-observacoes" }, "Observações"),
       el("textarea", { id: "field-observacoes", class: "form-control" }, data.observacoes || ""),
@@ -300,10 +316,15 @@ function openYouthForm(youth) {
             dataBatismoAguas: qs("#field-dataBatismoAguas", form).value || null,
             instrumento: qs("#field-instrumento", form).value,
             outrosTalentos: qs("#field-outrosTalentos", form).value,
+            qtd: qs("#field-qtd", form).value,
+            estadoCivil: qs("#field-estadoCivil", form).value,
+            seLider: qs("#field-seLider", form).value,
+            qualDepartamento: qs("#field-qualDepartamento", form).value,
             observacoes: qs("#field-observacoes", form).value,
             batizadoEspiritoSanto: qs("#field-batizadoEspiritoSanto", form).checked,
             prega: qs("#field-prega", form).checked,
             canta: qs("#field-canta", form).checked,
+            liderExpansao: qs("#field-liderExpansao", form).checked,
           };
           const errors = YouthService.validate(payload);
           form.querySelectorAll(".form-error").forEach((e) => (e.textContent = ""));
