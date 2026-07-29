@@ -18,7 +18,7 @@ export const STORES = {
 export const AUTH_SESSION_KEY = "portal_expansao_session";
 export const DEMO_CREDENTIALS = {
   email: "admin@portalexpansao.local",
-  password: "admin123",
+  password: "Jesuseachave",
 };
 
 export const YOUTH_STATUS = {
