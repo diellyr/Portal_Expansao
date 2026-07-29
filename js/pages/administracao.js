@@ -11,7 +11,12 @@ import { openModal, confirmModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 import { el, qs, qsa, debounce, refreshIcons } from "../utils/dom-utils.js";
 import { getDataMode, setDataMode, DATA_MODES } from "../services/data-mode-service.js";
-import { isSupabaseConfigured } from "../config/supabase-config.js";
+import {
+  getSupabaseCredentials,
+  setSupabaseCredentials,
+  clearSupabaseCredentials,
+  isSupabaseConfigured,
+} from "../services/supabase-settings-service.js";
 
 const ok = await bootstrapPage({ activeKey: "administracao", title: "Administração" });
 if (ok) init();
@@ -363,7 +368,7 @@ function renderResultStep(result) {
   );
   toast.success("Importação concluída.");
   if (result.supabaseMirrorFailed) {
-    toast.error("Alguns registros não puderam ser espelhados para o Supabase — confira o console e a configuração em js/config/supabase-config.js.");
+    toast.error("Alguns registros não puderam ser espelhados para o Supabase — confira o console e as credenciais em Fonte de dados.");
   }
   refreshIcons();
 }
@@ -505,6 +510,9 @@ function detailItem(label, value) {
 function setupDataMode() {
   const toggle = qs("#data-mode-toggle");
   const badge = qs("#supabase-status-badge");
+  const form = qs("#supabase-credentials-form");
+  const urlInput = qs("#supabase-url-input");
+  const anonKeyInput = qs("#supabase-anon-key-input");
 
   function render() {
     const mode = getDataMode();
@@ -520,15 +528,43 @@ function setupDataMode() {
     }
   }
 
+  const { url, anonKey } = getSupabaseCredentials();
+  urlInput.value = url;
+  anonKeyInput.value = anonKey;
+
   toggle.addEventListener("click", () => {
     const switchingToSupabase = getDataMode() !== DATA_MODES.SUPABASE;
     if (switchingToSupabase && !isSupabaseConfigured()) {
-      toast.error("Preencha SUPABASE_URL e SUPABASE_ANON_KEY em js/config/supabase-config.js antes de ativar o Supabase.");
+      toast.error("Preencha e salve a URL e a chave anon do Supabase abaixo antes de ativar o Supabase.");
       return;
     }
     setDataMode(switchingToSupabase ? DATA_MODES.SUPABASE : DATA_MODES.INDEXEDDB);
     toast.success(`Fonte de dados alterada para ${switchingToSupabase ? "Supabase" : "IndexedDB"}.`);
     window.location.reload();
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!urlInput.value.trim() || !anonKeyInput.value.trim()) {
+      toast.error("Preencha a URL e a chave anon do Supabase.");
+      return;
+    }
+    setSupabaseCredentials(urlInput.value, anonKeyInput.value);
+    toast.success("Credenciais do Supabase salvas neste navegador.");
+    render();
+  });
+
+  qs("#clear-supabase-credentials-btn").addEventListener("click", () => {
+    clearSupabaseCredentials();
+    urlInput.value = "";
+    anonKeyInput.value = "";
+    toast.success("Credenciais do Supabase removidas.");
+    render();
+    if (getDataMode() === DATA_MODES.SUPABASE) {
+      setDataMode(DATA_MODES.INDEXEDDB);
+      toast.error("Fonte de dados voltou para IndexedDB porque o Supabase ficou sem credenciais.");
+      window.location.reload();
+    }
   });
 
   render();

@@ -1,7 +1,7 @@
 import { put as indexedDbPut } from "../database/db.js";
 import * as supabaseDb from "../database/supabase-db.js";
 import { isSupabaseMode } from "./data-mode-service.js";
-import { isSupabaseConfigured } from "../config/supabase-config.js";
+import { isSupabaseConfigured } from "./supabase-settings-service.js";
 
 let supabaseMirrorFailed = false;
 

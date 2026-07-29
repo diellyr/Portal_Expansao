@@ -240,14 +240,11 @@ No **SQL Editor** do seu projeto Supabase, rode o script de criação de tabelas
 
 ### 2. Configurar as credenciais
 
-Edite `js/config/supabase-config.js` e preencha:
+Em **Administração → Fonte de dados** há um formulário com dois campos — **URL do projeto** e **chave anon/public** — que você encontra em **Project Settings → API** no painel do Supabase. Ao salvar, as credenciais ficam gravadas apenas neste navegador (`localStorage`); não é preciso editar nenhum arquivo.
 
-```js
-export const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
-export const SUPABASE_ANON_KEY = "sua-chave-anon-public";
-```
+Se preferir manter as credenciais versionadas no repositório (por exemplo, para não digitá-las de novo em cada navegador), também é possível preenchê-las em `js/config/supabase-config.js` — mas isso é opcional, o formulário na tela sempre tem prioridade sobre o arquivo.
 
-Ambos os valores ficam em **Project Settings → API** no painel do Supabase. A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de **Row Level Security (RLS)** nas tabelas, não do sigilo da chave. Enquanto estiver só testando, é comum deixar RLS desligado; antes de usar com dados reais, ative RLS e crie políticas explícitas.
+A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de **Row Level Security (RLS)** nas tabelas, não do sigilo da chave. Enquanto estiver só testando, é comum deixar RLS desligado; antes de usar com dados reais, ative RLS e crie políticas explícitas.
 
 ### 3. Alternar entre IndexedDB e Supabase
 

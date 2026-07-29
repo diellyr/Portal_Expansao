@@ -103,6 +103,8 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
       );
     });
     refreshIcons();
+  }).catch((err) => {
+    console.error("Falha ao carregar alertas:", err);
   });
 
   const currentLang = getLang();
