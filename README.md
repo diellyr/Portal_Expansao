@@ -2,6 +2,8 @@
 
 **Gestão Regional da Juventude**
 
+Versão atual: consulte [`version.md`](version.md) (também exibida na interface, logo abaixo do logotipo na barra lateral e na tela de login).
+
 Portal Expansão é um painel administrativo para gestão e análise da juventude de nove cidades de uma região. O sistema centraliza cidades, congregações, jovens, liderança, talentos, batismos, eventos e indicadores regionais, respondendo visualmente a perguntas como "quantos jovens existem em cada cidade?", "quantos são batizados?", "quem prega ou canta?" e "quais são os próximos eventos?".
 
 Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado como site estático no GitHub Pages.
