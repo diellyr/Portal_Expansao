@@ -2,7 +2,7 @@
 
 **Gestão Regional**
 
-Versão atual: consulte [`version.md`](version.md) (também exibida na interface, logo abaixo do logotipo na barra lateral e na tela de login).
+Versão atual: consulte [`version.md`](version.md) (também exibida na interface, logo abaixo do logotipo na barra lateral e na tela de login). Histórico completo de mudanças em [`CHANGELOG.md`](CHANGELOG.md).
 
 Portal Expansão é um painel administrativo para gestão e análise da juventude de nove cidades de uma região. O sistema centraliza cidades, congregações, jovens, liderança, talentos, batismos, eventos e indicadores regionais, respondendo visualmente a perguntas como "quantos jovens existem em cada cidade?", "quantos são batizados?", "quem prega ou canta?" e "quais são os próximos eventos?".
 
@@ -107,21 +107,28 @@ portal-expansao/
 │   └── responsive.css         # Ajustes finos de responsividade e impressão
 ├── js/
 │   ├── app.js                 # Bootstrap de página (sidebar/topbar/auth guard)
-│   ├── config/constants.js    # Constantes globais (status, faixas etárias, nav...)
+│   ├── config/
+│   │   ├── constants.js        # Constantes globais (status, faixas etárias, nav...)
+│   │   └── supabase-config.js  # Credenciais estáticas opcionais do Supabase
 │   ├── database/
-│   │   ├── db.js              # Wrapper do IndexedDB (abrir, CRUD genérico)
-│   │   ├── migrations.js      # Criação das object stores
-│   │   └── seed.js            # Gerador de dados de demonstração
-│   ├── repositories/          # Único acesso ao IndexedDB
-│   ├── services/              # Regras de negócio, filtros, relatórios, import, backup
-│   ├── parsers/                # csv-parser.js e excel-parser.js
-│   ├── components/            # Sidebar, topbar, cards, modal, toast, tabela, etc.
-│   ├── pages/                 # Um controlador JS por página (+ login.js)
-│   └── utils/                 # Validadores, formatadores, datas, DOM, arquivos
+│   │   ├── db.js               # Wrapper do IndexedDB (abrir, CRUD genérico)
+│   │   ├── migrations.js       # Criação das object stores
+│   │   ├── seed.js             # Gerador de dados de demonstração
+│   │   ├── supabase-client.js  # Carrega o supabase-js via CDN e cria o client
+│   │   └── supabase-db.js      # CRUD genérico equivalente ao db.js, via Supabase
+│   ├── repositories/           # Único acesso ao banco (IndexedDB ou Supabase)
+│   ├── services/               # Regras de negócio, filtros, relatórios, import, backup,
+│   │                            #   tema, idioma, fonte de dados, console de importação
+│   ├── parsers/                 # csv-parser.js e excel-parser.js
+│   ├── components/             # Sidebar, topbar, cards, modal, toast, tabela, etc.
+│   ├── pages/                  # Um controlador JS por página (+ login.js)
+│   └── utils/                  # Validadores, formatadores, datas, DOM, arquivos, case-utils
 ├── assets/
 │   ├── images/
 │   └── icons/
-└── README.md
+├── README.md
+├── CHANGELOG.md               # Histórico de mudanças por versão
+└── version.md                  # Número da versão atual
 ```
 
 ## Executar localmente
@@ -197,7 +204,8 @@ Fluxo completo em `js/services/import-service.js` + página `administracao.html`
 5. Detecção de cidades e congregações novas (criadas somente após confirmação) e de duplicados (por nome + data de nascimento + congregação, ou nome + congregação + cidade quando não há data de nascimento).
 6. Prévia com contagem de linhas válidas, com aviso, inválidas e duplicadas, além da quantidade de cidades/congregações novas — com opção de baixar um CSV apenas com as linhas problemáticas.
 7. Estratégia para duplicados: ignorar (padrão), atualizar existentes ou importar mesmo assim.
-8. Após confirmar, o dashboard, relatórios e histórico de importações são atualizados automaticamente.
+8. Ao confirmar, uma barra de progresso mostra o percentual e a quantidade de linhas já processadas, e um console de importação (veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento)) exibe cada etapa em tempo real — útil principalmente com o Supabase ativo. Ao final: mensagem de sucesso com o resumo, ou, em caso de falha, o motivo do erro e a opção de tentar novamente.
+9. Após confirmar, o dashboard, relatórios e histórico de importações são atualizados automaticamente.
 
 Modelos de planilha (CSV e Excel) podem ser baixados diretamente na página de Administração.
 
@@ -230,31 +238,218 @@ Disponível em Administração, com exclusões granulares (somente jovens, somen
 
 ## Integração com Supabase (modo desenvolvimento)
 
-Além do IndexedDB, o sistema já sabe falar com um projeto Supabase (Postgres) como banco alternativo, útil para testar a migração antes de trocar de vez.
+Além do IndexedDB, o sistema já sabe falar com um projeto [Supabase](https://supabase.com) (Postgres) como banco alternativo, útil para testar a migração antes de trocar de vez. Esta seção documenta o processo completo: criar o projeto, criar as tabelas, apontar o sistema para ele e resolver o erro mais comum (RLS).
 
-### 1. Criar as tabelas no Supabase
+### 1. Criar o projeto no Supabase
 
-No **SQL Editor** do seu projeto Supabase, rode o script de criação de tabelas (cidades, congregações, jovens, eventos, histórico de importações e configurações) — os nomes de tabela e coluna são o equivalente em `snake_case` dos campos usados no app (ex.: `cidadeId` → `cidade_id`).
+1. Acesse [supabase.com](https://supabase.com) e faça login (ou crie uma conta).
+2. Clique em **New Project**.
+3. Escolha a organização, dê um nome (ex.: `portal-expansao`), defina uma senha forte para o banco (guarde-a) e escolha a região mais próxima (ex.: `South America (São Paulo)`).
+4. Clique em **Create new project** e aguarde o provisionamento (leva alguns minutos).
 
-> Se você já pediu esse script antes nesta conversa, é o mesmo — as tabelas e nomes de coluna não mudaram.
+### 2. Criar as tabelas (SQL Editor)
 
-### 2. Configurar as credenciais
+No painel do projeto, vá em **SQL Editor → New query**, cole o script abaixo e clique em **Run**. Ele cria as 6 tabelas que o sistema usa (os nomes de coluna são o equivalente em `snake_case` dos campos do app, ex.: `cidadeId` → `cidade_id`):
 
-Em **Administração → Fonte de dados** há um formulário com dois campos — **URL do projeto** e **chave anon/public** — que você encontra em **Project Settings → API** no painel do Supabase. Ao salvar, as credenciais ficam gravadas apenas neste navegador (`localStorage`); não é preciso editar nenhum arquivo.
+```sql
+-- Extensão para gerar UUIDs
+create extension if not exists "pgcrypto";
 
-Se preferir manter as credenciais versionadas no repositório (por exemplo, para não digitá-las de novo em cada navegador), também é possível preenchê-las em `js/config/supabase-config.js` — mas isso é opcional, o formulário na tela sempre tem prioridade sobre o arquivo.
+-- CIDADES
+create table cities (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  estado text default '',
+  lider_cidade text default '',
+  conselheiro_cidade text default '',
+  telefone_lider text default '',
+  pastor_responsavel text default '',
+  ativo boolean default true,
+  is_demo boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
-A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de **Row Level Security (RLS)** nas tabelas, não do sigilo da chave. Enquanto estiver só testando, é comum deixar RLS desligado; antes de usar com dados reais, ative RLS e crie políticas explícitas.
+-- CONGREGAÇÕES
+create table congregations (
+  id uuid primary key default gen_random_uuid(),
+  cidade_id uuid references cities(id) on delete cascade,
+  nome text not null,
+  bairro text default '',
+  endereco text default '',
+  pastor text default '',
+  conselheiro_local text default '',
+  telefone_conselheiro text default '',
+  ativo boolean default true,
+  is_demo boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
-### 3. Alternar entre IndexedDB e Supabase
+-- JOVENS
+create table youth (
+  id uuid primary key default gen_random_uuid(),
+  codigo text default '',
+  nome text not null,
+  data_nascimento date,
+  sexo text default '',
+  telefone text default '',
+  celular text default '',
+  bairro text default '',
+  endereco text default '',
+  numero text default '',
+  cep text default '',
+  naturalidade text default '',
+  rg text default '',
+  orgao_emissor text default '',
+  cpf text default '',
+  cidade_id uuid references cities(id) on delete set null,
+  congregacao_id uuid references congregations(id) on delete set null,
+  status text default 'ativo',
+  estado_civil text default '',
+  outro_estado_civil text default '',
+  conjuge text default '',
+  escolaridade text default '',
+  profissao text default '',
+  cargo text default '',
+  nome_pai text default '',
+  nome_mae text default '',
+  pastor text default '',
+  conselheiro_local text default '',
+  conselheiro_cidade text default '',
+  data_batismo_aguas date,
+  batizado_espirito_santo boolean default false,
+  instrumento text default '',
+  prega boolean default false,
+  canta boolean default false,
+  outros_talentos text default '',
+  qtd text default '',
+  lider_expansao boolean default false,
+  se_lider text default '',
+  qual_departamento text default '',
+  nome_dirigente text default '',
+  recebido_por text default '',
+  tipo_admissao text default '',
+  observacoes text default '',
+  foto text,
+  data_entrada date,
+  ativo boolean default true,
+  is_demo boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
-Em **Administração → Fonte de dados** há uma chave seletora para escolher qual banco o sistema usa no dia a dia (dashboard, cadastros, relatórios). Ela fica salva no navegador (não é uma configuração do projeto) e é bloqueada se você tentar ativar o Supabase antes de preencher as credenciais.
+-- EVENTOS
+create table events (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null,
+  tipo text default 'outro',
+  data date not null,
+  horario text default '',
+  cidade_id uuid references cities(id) on delete set null,
+  congregacao_id uuid references congregations(id) on delete set null,
+  regional boolean default false,
+  local text default '',
+  descricao text default '',
+  is_demo boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
 
-### 4. Importação alimenta os dois bancos
+-- HISTÓRICO DE IMPORTAÇÕES
+create table import_history (
+  id uuid primary key default gen_random_uuid(),
+  nome_arquivo text not null,
+  formato text default 'csv',
+  total_linhas integer default 0,
+  criados integer default 0,
+  atualizados integer default 0,
+  ignorados integer default 0,
+  erros integer default 0,
+  created_at timestamptz default now()
+);
+
+-- CONFIGURAÇÕES DO APP (registro único)
+create table settings (
+  id text primary key default 'app-settings',
+  city_colors jsonb default '{}'::jsonb,
+  sidebar_collapsed boolean default false
+);
+```
+
+### 3. Liberar o acesso via RLS (Row Level Security)
+
+Este é o passo que mais causa dúvida: o Supabase pode criar as tabelas com **RLS ativado por padrão**, e sem uma política explícita, toda escrita feita pela chave `anon` (a única credencial que este app usa, já que ele não tem autenticação real do Supabase) é **bloqueada** com um erro parecido com:
+
+```
+new row violates row-level security policy for table "cities"
+```
+
+Se você ver esse erro no console de importação (passo 7 abaixo) ou na tela de erro da importação, rode uma das opções abaixo no **SQL Editor**:
+
+**Opção A — Desativar RLS (mais simples, recomendado enquanto está só testando):**
+
+```sql
+alter table cities disable row level security;
+alter table congregations disable row level security;
+alter table youth disable row level security;
+alter table events disable row level security;
+alter table import_history disable row level security;
+alter table settings disable row level security;
+```
+
+**Opção B — Manter RLS ativo, com uma política liberando o `anon`:**
+
+```sql
+alter table cities enable row level security;
+create policy "allow anon all" on cities for all to anon using (true) with check (true);
+
+alter table congregations enable row level security;
+create policy "allow anon all" on congregations for all to anon using (true) with check (true);
+
+alter table youth enable row level security;
+create policy "allow anon all" on youth for all to anon using (true) with check (true);
+
+alter table events enable row level security;
+create policy "allow anon all" on events for all to anon using (true) with check (true);
+
+alter table import_history enable row level security;
+create policy "allow anon all" on import_history for all to anon using (true) with check (true);
+
+alter table settings enable row level security;
+create policy "allow anon all" on settings for all to anon using (true) with check (true);
+```
+
+> **Atenção para quando for usar com dados reais**: como o login deste app é só demonstrativo (sem Supabase Auth), a chave `anon` é a mesma para qualquer visitante do site. Com RLS desligado (ou com a política `using (true)` acima), qualquer pessoa que abrir o site consegue ler e escrever todos os dados direto no Supabase. Isso é aceitável em modo de teste, mas antes de cadastrar dados reais de jovens (CPF, RG, telefone) é necessário implementar autenticação de verdade (Supabase Auth) com políticas de RLS que dependam do usuário logado.
+
+### 4. Apontar o sistema para o Supabase
+
+O app é um site estático (client-side puro, sem servidor próprio) — por isso, ao conectar, a opção correta na tela **"Connect to your project"** do Supabase é **Framework** ("Use a client library"), não "Server", "Direct" ou "ORM" (essas são para quem tem um backend próprio fazendo de intermediário, o que não é o caso aqui).
+
+Na prática, você não precisa mexer em nada nessa tela do Supabase — o app já usa a biblioteca `@supabase/supabase-js` internamente. Basta pegar dois valores em **Project Settings → API** no painel do Supabase:
+
+- **Project URL** (algo como `https://xxxxxxxxxxxx.supabase.co`)
+- **anon public key** (uma chave longa começando geralmente com `eyJ...`)
+
+E preenchê-los em **Administração → Fonte de dados**, no formulário abaixo da chave seletora IndexedDB/Supabase. Ao clicar em **Salvar credenciais**, elas ficam gravadas neste navegador (`localStorage`) — não é preciso editar nenhum arquivo nem mexer em variáveis de ambiente.
+
+Se preferir manter as credenciais versionadas no repositório (por exemplo, para não digitá-las de novo em cada navegador), também é possível preenchê-las em `js/config/supabase-config.js` — mas isso é opcional; o formulário na tela sempre tem prioridade sobre o arquivo.
+
+A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de RLS (passo 3), não do sigilo da chave.
+
+### 5. Alternar entre IndexedDB e Supabase
+
+Em **Administração → Fonte de dados** há uma chave seletora para escolher qual banco o sistema usa no dia a dia (dashboard, cadastros, relatórios). Ela fica salva no navegador (não é uma configuração do projeto) e é bloqueada se você tentar ativar o Supabase antes de preencher e salvar as credenciais.
+
+### 6. Importação alimenta os dois bancos
 
 Independentemente da chave seletora, toda vez que uma planilha é importada (Administração → Importação de dados), cada cidade, congregação e jovem criado ou atualizado é gravado **nos dois bancos** — IndexedDB e Supabase — para que fiquem sincronizados enquanto o Supabase ainda está em teste. Se o Supabase não estiver configurado, a importação continua funcionando normalmente só no IndexedDB (o espelhamento é ignorado silenciosamente); se estiver configurado mas alguma gravação falhar, um aviso aparece ao final da importação.
 
 Fora da importação (cadastro manual, backup/restauração, dados de demonstração, zona de perigo), cada operação afeta **apenas** o banco ativo no momento — não há espelhamento automático nesses fluxos.
+
+### 7. Diagnosticar problemas (console de importação)
+
+Abaixo do botão "Confirmar importação", em Administração, há um **console de importação** (painel estilo terminal) que mostra em tempo real cada etapa: qual banco está ativo, criação de cidade/congregação/jovem e, principalmente, cada tentativa de espelhamento para o Supabase com sucesso ou com o erro exato retornado pelo banco (ex.: o erro de RLS do passo 3). Use-o sempre que uma importação ou sincronização "não estiver indo" — ele evita ter que abrir o console de desenvolvedor do navegador.
 
 ### Arquitetura da troca
 
