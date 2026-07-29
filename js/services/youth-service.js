@@ -67,6 +67,7 @@ export const YouthService = {
       conjuge: data.conjuge?.trim() || "",
       outroEstadoCivil: data.outroEstadoCivil?.trim() || "",
       cargo: data.cargo?.trim() || "",
+      foto: data.foto || null,
       observacoes: data.observacoes?.trim() || "",
       dataEntrada: data.dataEntrada || now.slice(0, 10),
       ativo: data.status !== "inativo",

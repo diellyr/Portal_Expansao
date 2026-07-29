@@ -316,3 +316,89 @@ textarea.form-control { height: auto; padding: var(--space-2) var(--space-3); mi
 .summary-tile { background: var(--color-surface-alt); border-radius: var(--radius-md); padding: var(--space-3); text-align: center; }
 .summary-tile-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
 .summary-tile-label { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+/* Photo upload square (Jovem form) */
+.photo-square-wrap { max-width: 160px; }
+.photo-square {
+  position: relative;
+  width: 140px; height: 140px;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.photo-square:hover, .photo-square.dragover { border-color: var(--color-primary); background: var(--color-primary-light); }
+.photo-square-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-1);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  padding: var(--space-2);
+}
+.photo-square-placeholder .icon { width: 28px; height: 28px; }
+.photo-square-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 24px; height: 24px;
+  border: none; border-radius: 50%;
+  background: rgba(15, 23, 42, 0.65); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.photo-square-remove:hover { background: rgba(185, 28, 28, 0.85); }
+/* [hidden] must win over the display:flex rules above regardless of source order */
+.photo-square-placeholder[hidden],
+.photo-square-remove[hidden] {
+  display: none;
+}
+
+/* Photo thumbnails inside tables and the ficha digital header */
+.avatar-thumb {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+}
+.avatar-thumb-placeholder {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.name-cell-link {
+  display: flex; align-items: center; gap: var(--space-2);
+  background: none; border: none; padding: 0;
+  text-align: left; cursor: pointer;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+.name-cell-link:hover { color: var(--color-primary); text-decoration: underline; }
+
+.ficha-header {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.ficha-header-photo {
+  width: 96px; height: 96px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+}
+.ficha-header-photo-placeholder {
+  width: 96px; height: 96px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ficha-header-info { min-width: 0; }
+.ficha-header-name { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); margin-bottom: 4px; }
+.ficha-header-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; font-size: var(--font-size-sm); color: var(--color-text-muted); }

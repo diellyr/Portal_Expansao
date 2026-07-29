@@ -41,6 +41,7 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 
 - **Dashboard** com 11 cards de indicadores, 10 gráficos (Chart.js) e 7 listas/alertas, todos reativos aos filtros globais.
 - **Cidades, Congregações, Jovens e Eventos**: cadastro completo (criar, editar, visualizar, excluir), busca, ordenação, paginação e indicadores por registro.
+- **Foto do jovem** (JPEG, até 5MB) com prévia no formulário, miniatura clicável na lista e uma **ficha digital** (foto + todos os dados) ao clicar no nome ou na foto.
 - **Filtros globais combináveis**: cidade, congregação (escopada à cidade), status, faixa etária, batismo nas águas, batismo no Espírito Santo, prega, canta, instrumento e período — com chips removíveis mostrando os filtros ativos.
 - **Relatórios**: 10 relatórios (por cidade, por congregação, por status, faixa etária, batismo nas águas, batismo no Espírito Santo, talentos, aniversariantes, dados incompletos e comparativo de cidades), com exportação em CSV, Excel e impressão.
 - **Importação de planilhas** (CSV, XLS, XLSX) com mapeamento manual de colunas, detecção de cabeçalhos alternativos, normalização de datas/booleanos/textos, detecção de duplicados, criação assistida de cidades/congregações novas e prévia detalhada antes de confirmar.
@@ -201,7 +202,7 @@ A importação é tolerante a variações na planilha:
 
 - **Exportar backup completo** (`portal-expansao-backup-YYYY-MM-DD.json`): inclui cidades, congregações, jovens, eventos, configurações e histórico de importações.
 - **Restaurar backup**: mostra data do backup e quantidade de cada entidade antes de substituir os dados atuais (com confirmação explícita).
-- **Exportar jovens filtrados** em CSV ou Excel, tanto na página de Jovens quanto em Relatórios.
+- **Exportar jovens filtrados** em CSV ou Excel, tanto na página de Jovens quanto em Relatórios. As fotos não são incluídas nesses arquivos (ficariam ilegíveis como texto); elas fazem parte apenas do backup JSON, que preserva o cadastro por completo.
 
 ## Zona de perigo
 
