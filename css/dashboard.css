@@ -1,0 +1,18 @@
+.filters-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+
+.dashboard-grid { display: grid; gap: var(--space-4); }
+
+.city-color-dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+}
+
+.rank-list-item { display: flex; align-items: center; gap: var(--space-3); }
+.rank-badge {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--color-surface-alt); color: var(--color-text-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+.rank-bar-track { flex: 1; height: 6px; background: var(--color-border); border-radius: var(--radius-full); overflow: hidden; }
+.rank-bar-fill { height: 100%; border-radius: var(--radius-full); background: var(--color-primary); }

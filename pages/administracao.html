@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administração — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Administração</h2>
+          <p class="page-header-subtitle">Importação de dados, backup, dados de demonstração e zona de perigo.</p>
+        </div>
+
+        <section aria-label="Importação de dados">
+          <h3 class="section-title"><i data-lucide="upload" class="icon"></i> Importação de dados</h3>
+          <div class="surface" style="padding: var(--space-5);">
+            <div class="row-wrap gap-2" style="margin-bottom: var(--space-4);">
+              <button type="button" class="btn btn-secondary btn-sm" id="download-csv-template"><i data-lucide="file-down" class="icon icon-sm"></i> Baixar modelo CSV</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="download-excel-template"><i data-lucide="file-down" class="icon icon-sm"></i> Baixar modelo Excel</button>
+            </div>
+            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Selecionar ou arrastar arquivo para importação">
+              <i data-lucide="upload-cloud" class="icon icon-lg"></i>
+              <p><strong>Arraste um arquivo CSV ou Excel</strong> ou clique para selecionar.</p>
+              <p class="text-muted" style="margin:0;">Formatos aceitos: .csv, .xls, .xlsx</p>
+            </div>
+            <input type="file" id="file-input" accept=".csv,.xls,.xlsx" class="visually-hidden" />
+            <div id="import-wizard"></div>
+          </div>
+        </section>
+
+        <section aria-label="Histórico de importações">
+          <h3 class="section-title"><i data-lucide="history" class="icon"></i> Histórico de importações</h3>
+          <div class="surface filter-bar" style="margin-bottom: var(--space-3);">
+            <div class="filter-field">
+              <label for="history-search">Nome do arquivo</label>
+              <input type="search" id="history-search" class="form-control" placeholder="Pesquisar arquivo..." />
+            </div>
+            <div class="filter-actions">
+              <button type="button" class="btn btn-secondary" id="clear-history-btn"><i data-lucide="trash-2" class="icon icon-sm"></i> Apagar histórico</button>
+            </div>
+          </div>
+          <div id="history-table"></div>
+        </section>
+
+        <section aria-label="Backup e restauração">
+          <h3 class="section-title"><i data-lucide="database-backup" class="icon"></i> Backup e restauração</h3>
+          <div class="surface" style="padding: var(--space-5);">
+            <div class="row-wrap gap-2">
+              <button type="button" class="btn btn-primary" id="export-backup-btn"><i data-lucide="download" class="icon icon-sm"></i> Exportar backup (JSON)</button>
+              <button type="button" class="btn btn-secondary" id="restore-backup-btn"><i data-lucide="upload" class="icon icon-sm"></i> Restaurar backup</button>
+              <input type="file" id="backup-file-input" accept=".json" class="visually-hidden" />
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Dados de demonstração">
+          <h3 class="section-title"><i data-lucide="flask-conical" class="icon"></i> Dados de demonstração</h3>
+          <div class="surface" style="padding: var(--space-5);">
+            <div class="row-wrap gap-2">
+              <button type="button" class="btn btn-secondary" id="load-demo-btn"><i data-lucide="sparkles" class="icon icon-sm"></i> Carregar dados de demonstração</button>
+              <button type="button" class="btn btn-secondary" id="remove-demo-btn"><i data-lucide="eraser" class="icon icon-sm"></i> Remover dados de demonstração</button>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Zona de perigo">
+          <h3 class="section-title"><i data-lucide="alert-triangle" class="icon"></i> Zona de perigo</h3>
+          <div class="danger-zone">
+            <div class="danger-zone-item">
+              <div><strong>Apagar somente jovens</strong><p class="text-muted" style="margin:0;">Remove todos os registros de jovens.</p></div>
+              <button type="button" class="btn btn-danger btn-sm" id="delete-youth-btn">Apagar jovens</button>
+            </div>
+            <div class="danger-zone-item">
+              <div><strong>Apagar somente eventos</strong><p class="text-muted" style="margin:0;">Remove todos os eventos cadastrados.</p></div>
+              <button type="button" class="btn btn-danger btn-sm" id="delete-events-btn">Apagar eventos</button>
+            </div>
+            <div class="danger-zone-item">
+              <div><strong>Apagar histórico de importações</strong><p class="text-muted" style="margin:0;">Remove os registros de histórico.</p></div>
+              <button type="button" class="btn btn-danger btn-sm" id="delete-history-btn">Apagar histórico</button>
+            </div>
+            <div class="danger-zone-item">
+              <div><strong>Apagar dados de uma cidade</strong><p class="text-muted" style="margin:0;">Remove a cidade e tudo vinculado a ela.</p></div>
+              <div class="row gap-2">
+                <select id="delete-city-select" class="form-control"></select>
+                <button type="button" class="btn btn-danger btn-sm" id="delete-city-btn">Apagar cidade</button>
+              </div>
+            </div>
+            <div class="danger-zone-item">
+              <div><strong>Apagar dados de demonstração</strong><p class="text-muted" style="margin:0;">Remove apenas os registros marcados como demonstração.</p></div>
+              <button type="button" class="btn btn-danger btn-sm" id="delete-demo-btn">Apagar demonstração</button>
+            </div>
+            <div class="danger-zone-item">
+              <div><strong>Apagar todos os dados</strong><p class="text-muted" style="margin:0;">Remove cidades, congregações, jovens, eventos, histórico e configurações.</p></div>
+              <button type="button" class="btn btn-danger" id="delete-all-btn">Apagar todos os dados</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="../js/pages/administracao.js"></script>
+</body>
+</html>

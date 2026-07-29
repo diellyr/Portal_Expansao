@@ -1,0 +1,30 @@
+/* Cross-cutting responsive tweaks not covered inline in other files */
+@media (max-width: 640px) {
+  .modal { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; align-self: flex-end; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-field { min-width: 0; flex: none; }
+  .filter-actions { flex-direction: column; align-items: stretch; }
+  .chart-card-canvas-wrap { height: 240px; }
+  .list-row { flex-wrap: wrap; }
+  .btn { width: 100%; }
+  .modal-footer .btn, .form-actions .btn { width: auto; }
+  .danger-zone-item { flex-direction: column; align-items: stretch; }
+  .topbar-user span:not(.topbar-user-avatar) { display: none; }
+  #logout-btn-label { display: none; }
+}
+
+@media (max-width: 480px) {
+  .topbar-user { display: none; }
+}
+
+@media (min-width: 641px) {
+  .filter-actions .btn { width: auto; }
+}
+
+@media print {
+  .sidebar, .topbar, .filter-bar, .btn, .no-print { display: none !important; }
+  .app-shell { display: block; }
+  .main-content { padding: 0; max-width: none; }
+  .surface { box-shadow: none; border: 1px solid #ccc; }
+}

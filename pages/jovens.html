@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jovens — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header row-between">
+          <div>
+            <h2 class="page-header-title">Jovens</h2>
+            <p class="page-header-subtitle">Cadastro completo da juventude regional.</p>
+          </div>
+          <div class="row gap-2">
+            <button type="button" class="btn btn-secondary" id="export-btn">
+              <i data-lucide="file-text" class="icon icon-sm"></i> Exportar CSV
+            </button>
+            <button type="button" class="btn btn-secondary" id="export-excel-btn">
+              <i data-lucide="file-spreadsheet" class="icon icon-sm"></i> Exportar Excel
+            </button>
+            <button type="button" class="btn btn-primary" id="new-youth-btn">
+              <i data-lucide="plus" class="icon icon-sm"></i> Novo jovem
+            </button>
+          </div>
+        </div>
+
+        <div class="surface filter-bar" style="margin-bottom: var(--space-3);">
+          <div class="search-input-wrap filter-field">
+            <label for="search-input" class="visually-hidden">Pesquisar jovem</label>
+            <i data-lucide="search" class="icon icon-sm"></i>
+            <input type="search" id="search-input" class="form-control" placeholder="Pesquisar por nome..." />
+          </div>
+        </div>
+
+        <div id="global-filters"></div>
+        <div id="filter-chips" style="margin-bottom: var(--space-4);"></div>
+
+        <div id="youth-table"></div>
+        <div id="youth-pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="../js/pages/jovens.js"></script>
+</body>
+</html>

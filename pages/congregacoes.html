@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Congregações — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header row-between">
+          <div>
+            <h2 class="page-header-title">Congregações</h2>
+            <p class="page-header-subtitle">Cadastro de congregações vinculadas a cada cidade.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="new-congregation-btn">
+            <i data-lucide="plus" class="icon icon-sm"></i> Nova congregação
+          </button>
+        </div>
+
+        <div class="surface filter-bar" style="margin-bottom: var(--space-5);">
+          <div class="search-input-wrap filter-field">
+            <label for="search-input" class="visually-hidden">Pesquisar congregação</label>
+            <i data-lucide="search" class="icon icon-sm"></i>
+            <input type="search" id="search-input" class="form-control" placeholder="Pesquisar por nome..." />
+          </div>
+          <div class="filter-field">
+            <label for="city-filter">Cidade</label>
+            <select id="city-filter" class="form-control"><option value="all">Todas</option></select>
+          </div>
+          <div class="filter-field">
+            <label for="status-filter">Status</label>
+            <select id="status-filter" class="form-control">
+              <option value="all">Todos</option>
+              <option value="ativo">Ativas</option>
+              <option value="inativo">Inativas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="congregations-table"></div>
+        <div id="congregations-pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="../js/pages/congregacoes.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Dashboard Regional</h2>
+          <p class="page-header-subtitle">Visão geral da juventude nas nove cidades da região.</p>
+        </div>
+
+        <section aria-label="Filtros">
+          <div id="global-filters"></div>
+          <div class="filters-summary">
+            <div id="filter-chips"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="restore-view-btn">
+              <i data-lucide="rotate-ccw" class="icon icon-sm"></i> Restaurar visualização
+            </button>
+          </div>
+        </section>
+
+        <section aria-label="Indicadores">
+          <div class="grid grid-cards" id="metric-cards"></div>
+        </section>
+
+        <section aria-label="Gráficos">
+          <h3 class="section-title"><i data-lucide="bar-chart-3" class="icon"></i> Gráficos</h3>
+          <div class="grid grid-charts" id="charts-grid"></div>
+        </section>
+
+        <section aria-label="Listas e alertas">
+          <h3 class="section-title"><i data-lucide="list" class="icon"></i> Listas e alertas</h3>
+          <div class="grid grid-lists" id="lists-grid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script type="module" src="../js/pages/dashboard.js"></script>
+</body>
+</html>
