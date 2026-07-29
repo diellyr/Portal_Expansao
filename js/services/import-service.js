@@ -1,4 +1,4 @@
-import { normalizeText, normalizeForComparison, normalizeBoolean, validateMappedRow } from "./validation-service.js";
+import { normalizeText, normalizeForComparison, normalizeHeader, normalizeBoolean, validateMappedRow } from "./validation-service.js";
 import { normalizeDate } from "../utils/dates.js";
 import { CityService } from "./city-service.js";
 import { CongregationService } from "./congregation-service.js";
@@ -33,38 +33,42 @@ export const EXPECTED_FIELDS = [
   { key: "observacoes", label: "Observações" },
 ];
 
+// Alias lists are matched with normalizeHeader(), which lowercases, strips
+// accents/punctuation, and treats underscores as spaces — so "QTD.",
+// "Estado_Civil?" and "estado civil" all reduce to the same key ("qtd",
+// "estado civil") and only need to be listed once, in their plain form.
 const COLUMN_ALIASES = {
   nome: ["nome", "nome completo", "nome do jovem", "jovem"],
   bairro: ["bairro"],
-  cidade: ["cidade", "cidade da congregacao", "cidade da congregação"],
-  congregacao: ["congregacao", "congregação", "congregacao local", "congregação local"],
-  data_nascimento: ["data_nascimento", "nascimento", "data de nascimento"],
+  cidade: ["cidade", "cidade da congregacao"],
+  congregacao: ["congregacao", "congregacao local"],
+  data_nascimento: ["data nascimento", "nascimento", "data de nascimento"],
   telefone: ["telefone", "celular", "contato", "whatsapp"],
-  status: ["status", "situacao", "situação"],
-  conselheiro_local: ["conselheiro_local", "conselheiro local"],
-  conselheiro_cidade: ["conselheiro_cidade", "conselheiro da cidade", "conselheiro cidade"],
+  status: ["status", "situacao"],
+  conselheiro_local: ["conselheiro local"],
+  conselheiro_cidade: ["conselheiro cidade", "conselheiro da cidade"],
   pastor: ["pastor"],
   pai: ["pai", "nome do pai"],
-  mae: ["mae", "mãe", "nome da mae", "nome da mãe"],
-  data_batismo_aguas: ["data_batismo_aguas", "batismo aguas", "batismo águas", "data batismo", "data do batismo"],
-  batizado_espirito_santo: ["batizado_espirito_santo", "batizado es", "espirito santo", "espírito santo"],
+  mae: ["mae", "nome da mae"],
+  data_batismo_aguas: ["data batismo aguas", "batismo aguas", "data batismo", "data do batismo"],
+  batizado_espirito_santo: ["batizado espirito santo", "batizado es", "espirito santo"],
   instrumento: ["instrumento"],
   prega: ["prega"],
   canta: ["canta"],
-  outros_talentos: ["outros_talentos", "outros talentos"],
+  outros_talentos: ["outros talentos"],
   qtd: ["qtd", "quantidade"],
-  estado_civil: ["estado_civil", "estado civil"],
-  lider_expansao: ["lider_expansao?", "lider_expansao", "lider expansao?", "lider expansao", "e lider de expansao?", "lider de expansao?", "lider de expansao"],
-  se_lider: ["se_lider", "se lider", "se lider?", "se_lider_qual", "se lider qual", "se lider, qual?", "se lider (qual)", "se lider (qual)?"],
-  qual_departamento: ["qual_departamento?", "qual_departamento", "qual departamento?", "qual departamento", "departamento"],
-  observacoes: ["observacoes", "observações"],
+  estado_civil: ["estado civil"],
+  lider_expansao: ["lider expansao", "e lider de expansao", "lider de expansao"],
+  se_lider: ["se lider", "se lider qual"],
+  qual_departamento: ["qual departamento", "departamento", "se lider qual departamento"],
+  observacoes: ["observacoes"],
 };
 
 export function suggestMapping(headers) {
   const mapping = {};
   for (const field of EXPECTED_FIELDS) {
-    const aliases = COLUMN_ALIASES[field.key].map(normalizeForComparison);
-    const match = headers.find((h) => aliases.includes(normalizeForComparison(h)));
+    const aliases = COLUMN_ALIASES[field.key].map(normalizeHeader);
+    const match = headers.find((h) => aliases.includes(normalizeHeader(h)));
     mapping[field.key] = match || null;
   }
   return mapping;
