@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventos — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header row-between">
+          <div>
+            <h2 class="page-header-title">Eventos</h2>
+            <p class="page-header-subtitle">Agenda regional de cultos, congressos e demais atividades.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="new-event-btn">
+            <i data-lucide="plus" class="icon icon-sm"></i> Novo evento
+          </button>
+        </div>
+
+        <div class="surface filter-bar" style="margin-bottom: var(--space-5);">
+          <div class="search-input-wrap filter-field">
+            <label for="search-input" class="visually-hidden">Pesquisar evento</label>
+            <i data-lucide="search" class="icon icon-sm"></i>
+            <input type="search" id="search-input" class="form-control" placeholder="Pesquisar por título..." />
+          </div>
+          <div class="filter-field">
+            <label for="type-filter">Tipo</label>
+            <select id="type-filter" class="form-control"><option value="all">Todos</option></select>
+          </div>
+          <div class="filter-field">
+            <label for="city-filter">Cidade</label>
+            <select id="city-filter" class="form-control"><option value="all">Todas</option></select>
+          </div>
+          <div class="filter-field">
+            <label for="congregation-filter">Congregação</label>
+            <select id="congregation-filter" class="form-control"><option value="all">Todas</option></select>
+          </div>
+          <div class="filter-field">
+            <label for="date-start">De</label>
+            <input type="date" id="date-start" class="form-control" />
+          </div>
+          <div class="filter-field">
+            <label for="date-end">Até</label>
+            <input type="date" id="date-end" class="form-control" />
+          </div>
+        </div>
+
+        <div class="wizard-steps" role="tablist" aria-label="Período dos eventos">
+          <button type="button" class="wizard-step active" id="tab-futuros" role="tab" aria-selected="true">
+            <span class="wizard-step-num"><span>▲</span></span> Próximos eventos
+          </button>
+          <button type="button" class="wizard-step" id="tab-passados" role="tab" aria-selected="false">
+            <span class="wizard-step-num"><span>▼</span></span> Eventos passados
+          </button>
+        </div>
+
+        <div id="events-table"></div>
+        <div id="events-pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="../js/pages/eventos.js"></script>
+</body>
+</html>

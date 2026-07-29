@@ -1,0 +1,66 @@
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  min-width: 640px;
+}
+.data-table thead th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.data-table thead th.no-sort { cursor: default; }
+.data-table thead th .sort-indicator { margin-left: 4px; opacity: 0.5; }
+.data-table thead th.sorted .sort-indicator { opacity: 1; }
+.data-table tbody td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--color-surface-alt); }
+.data-table .col-actions { display: flex; gap: var(--space-1); justify-content: flex-end; }
+
+.sr-table { border-collapse: collapse; width: 100%; }
+.sr-table caption { text-align: left; font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: 4px; }
+.sr-table td, .sr-table th { padding: 4px 8px; font-size: var(--font-size-xs); border-bottom: 1px solid var(--color-border); }
+
+@media (max-width: 640px) {
+  .data-table.cards-on-mobile thead { display: none; }
+  .data-table.cards-on-mobile, .data-table.cards-on-mobile tbody, .data-table.cards-on-mobile tr, .data-table.cards-on-mobile td {
+    display: block; width: 100%;
+  }
+  .data-table.cards-on-mobile tr {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) 0;
+  }
+  .data-table.cards-on-mobile td {
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .data-table.cards-on-mobile td::before {
+    content: attr(data-label);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+}
