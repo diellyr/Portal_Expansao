@@ -4,7 +4,8 @@ import { CityService } from "./city-service.js";
 import { CongregationService } from "./congregation-service.js";
 import { YouthRepository } from "../repositories/youth-repository.js";
 import { ImportHistoryRepository } from "../repositories/import-history-repository.js";
-import { YOUTH_STATUS } from "../config/constants.js";
+import { YOUTH_STATUS, STORES } from "../config/constants.js";
+import { mirrorToOtherBackend, consumeSupabaseMirrorFailure } from "./dual-write-service.js";
 
 export const EXPECTED_FIELDS = [
   { key: "codigo", label: "Código" },
@@ -301,6 +302,7 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
     if (!city) {
       city = await CityService.save({ nome: row.cidade, ativo: true });
       cityByName.set(cityKey, city);
+      await mirrorToOtherBackend(STORES.CITIES, city);
     }
 
     let congregation = null;
@@ -310,6 +312,7 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       if (!congregation) {
         congregation = await CongregationService.save({ nome: row.congregacao, cidadeId: city.id, ativo: true });
         congByKey.set(congKey, congregation);
+        await mirrorToOtherBackend(STORES.CONGREGATIONS, congregation);
       }
     }
 
@@ -369,32 +372,36 @@ export async function commitImport(rows, { duplicateStrategy = "ignorar", fileNa
       observacoes: row.observacoes,
     };
 
+    let savedYouth = null;
     if (matchIdx >= 0 && (row.rowStatus !== "duplicada" || duplicateStrategy === "atualizar")) {
-      await YouthRepository.save({ ...existingYouth[matchIdx], ...payload, updatedAt: new Date().toISOString() });
+      savedYouth = await YouthRepository.save({ ...existingYouth[matchIdx], ...payload, updatedAt: new Date().toISOString() });
       atualizados++;
     } else if (matchIdx >= 0 && duplicateStrategy === "importar") {
-      await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       criados++;
     } else if (matchIdx < 0) {
-      await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      savedYouth = await YouthRepository.save({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       criados++;
     } else {
       ignorados++;
     }
+    if (savedYouth) await mirrorToOtherBackend(STORES.YOUTH, savedYouth);
   }
 
   const result = { criados, atualizados, ignorados, erros };
 
-  await ImportHistoryRepository.save({
+  const importHistoryEntry = {
     id: crypto.randomUUID(),
     nomeArquivo: fileName || "arquivo",
     formato: fileFormat || "csv",
     totalLinhas: rows.length,
     ...result,
     createdAt: new Date().toISOString(),
-  });
+  };
+  await ImportHistoryRepository.save(importHistoryEntry);
+  await mirrorToOtherBackend(STORES.IMPORT_HISTORY, importHistoryEntry);
 
-  return result;
+  return { ...result, supabaseMirrorFailed: consumeSupabaseMirrorFailure() };
 }
 
 export function buildErrorsCSV(rows) {

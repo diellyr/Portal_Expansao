@@ -10,6 +10,8 @@ import { renderDataTable } from "../components/data-table.js";
 import { openModal, confirmModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 import { el, qs, qsa, debounce, refreshIcons } from "../utils/dom-utils.js";
+import { getDataMode, setDataMode, DATA_MODES } from "../services/data-mode-service.js";
+import { isSupabaseConfigured } from "../config/supabase-config.js";
 
 const ok = await bootstrapPage({ activeKey: "administracao", title: "Administração" });
 if (ok) init();
@@ -24,17 +26,26 @@ let currentFileFormat = "";
 let duplicateStrategy = "ignorar";
 
 async function init() {
-  cities = await CityService.list();
-  const citySelect = qs("#delete-city-select");
-  cities.forEach((c) => citySelect.appendChild(new Option(c.nome, c.id)));
-
+  // Wired up first and unconditionally: if the active data source is broken
+  // (e.g. Supabase misconfigured), the user must still be able to reach this
+  // switch to get back to a working backend.
+  setupDataMode();
   setupDropzone();
   setupTemplates();
   setupBackup();
   setupDemoData();
   setupDangerZone();
 
-  await loadHistory();
+  try {
+    cities = await CityService.list();
+  } catch (err) {
+    console.error("Falha ao carregar cidades:", err);
+    toast.error("Não foi possível carregar dados do banco ativo. Verifique a fonte de dados acima.");
+    cities = [];
+  }
+  const citySelect = qs("#delete-city-select");
+  cities.forEach((c) => citySelect.appendChild(new Option(c.nome, c.id)));
+
   qs("#history-search").addEventListener(
     "input",
     debounce((e) => {
@@ -49,6 +60,8 @@ async function init() {
     toast.success("Histórico apagado.");
     await loadHistory();
   });
+
+  await loadHistory();
 }
 
 /* ---------------- Import wizard ---------------- */
@@ -349,6 +362,9 @@ function renderResultStep(result) {
     el("button", { type: "button", class: "btn btn-secondary", onClick: () => (container.innerHTML = "") }, "Nova importação")
   );
   toast.success("Importação concluída.");
+  if (result.supabaseMirrorFailed) {
+    toast.error("Alguns registros não puderam ser espelhados para o Supabase — confira o console e a configuração em js/config/supabase-config.js.");
+  }
   refreshIcons();
 }
 
@@ -399,7 +415,12 @@ function setupTemplates() {
 /* ---------------- History ---------------- */
 
 async function loadHistory() {
-  historyEntries = await ImportHistoryRepository.list();
+  try {
+    historyEntries = await ImportHistoryRepository.list();
+  } catch (err) {
+    console.error("Falha ao carregar histórico de importações:", err);
+    historyEntries = [];
+  }
   renderHistory();
 }
 
@@ -477,6 +498,40 @@ function setupBackup() {
 
 function detailItem(label, value) {
   return el("div", { class: "detail-item" }, [el("span", { class: "detail-item-label" }, label), el("span", { class: "detail-item-value" }, value)]);
+}
+
+/* ---------------- Data source (IndexedDB / Supabase) ---------------- */
+
+function setupDataMode() {
+  const toggle = qs("#data-mode-toggle");
+  const badge = qs("#supabase-status-badge");
+
+  function render() {
+    const mode = getDataMode();
+    const isSupabase = mode === DATA_MODES.SUPABASE;
+    toggle.classList.toggle("is-supabase", isSupabase);
+    toggle.setAttribute("aria-checked", isSupabase ? "true" : "false");
+    if (isSupabaseConfigured()) {
+      badge.textContent = "Supabase configurado";
+      badge.className = "badge badge-success";
+    } else {
+      badge.textContent = "Supabase não configurado";
+      badge.className = "badge badge-neutral";
+    }
+  }
+
+  toggle.addEventListener("click", () => {
+    const switchingToSupabase = getDataMode() !== DATA_MODES.SUPABASE;
+    if (switchingToSupabase && !isSupabaseConfigured()) {
+      toast.error("Preencha SUPABASE_URL e SUPABASE_ANON_KEY em js/config/supabase-config.js antes de ativar o Supabase.");
+      return;
+    }
+    setDataMode(switchingToSupabase ? DATA_MODES.SUPABASE : DATA_MODES.INDEXEDDB);
+    toast.success(`Fonte de dados alterada para ${switchingToSupabase ? "Supabase" : "IndexedDB"}.`);
+    window.location.reload();
+  });
+
+  render();
 }
 
 /* ---------------- Demo data ---------------- */
