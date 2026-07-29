@@ -232,12 +232,12 @@ textarea.form-control { height: auto; padding: var(--space-2) var(--space-3); mi
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  background: #fff5f5;
+  background: var(--color-danger-bg);
 }
 .danger-zone-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--space-3) 0;
-  border-bottom: 1px dashed #fca5a5;
+  border-bottom: 1px dashed var(--color-danger);
   gap: var(--space-3);
   flex-wrap: wrap;
 }
