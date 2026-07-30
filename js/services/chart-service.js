@@ -1,4 +1,4 @@
-import { colorsForLabels, buildPercentages } from "../utils/chart-utils.js";
+import { colorsForLabels, colorForLabel, buildPercentages } from "../utils/chart-utils.js";
 import { formatNumber } from "../utils/formatters.js";
 
 const registry = new Map();
@@ -116,6 +116,48 @@ export function createLineChart(canvasEl, { labels, values, unitLabel }) {
       },
       scales: {
         x: { ticks: { autoSkip: true, maxRotation: 0 } },
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
+  });
+  registry.set(canvasEl.id, chart);
+  return chart;
+}
+
+/** One line per entry in `series` (e.g. one per city), sharing the same X-axis labels (e.g. years). */
+export function createMultiLineChart(canvasEl, { labels, series, unitLabel = "jovens" }) {
+  destroyChart(canvasEl.id);
+  const datasets = series.map((s) => {
+    const color = colorForLabel(s.label);
+    return {
+      label: s.label,
+      data: s.values,
+      borderColor: color,
+      backgroundColor: color,
+      fill: false,
+      tension: 0.3,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+    };
+  });
+  const chart = new window.Chart(canvasEl, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label(ctx) {
+              return ` ${ctx.dataset.label}: ${formatNumber(ctx.parsed.y)} ${unitLabel}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: { ticks: { autoSkip: false, maxRotation: 0 } },
         y: { beginAtZero: true, ticks: { precision: 0 } },
       },
     },

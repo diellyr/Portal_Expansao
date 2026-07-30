@@ -31,13 +31,18 @@ async function loadRawData() {
 }
 
 export const DashboardService = {
-  async build(filters, selectedYear) {
+  async build(filters, selectedYear, growthYearRange) {
     const { cities, congregations, youth, events } = await loadRawData();
     const filtered = applyYouthFilters(youth, filters);
     const scopedCongregations =
       filters.cidadeId === "all" ? congregations : congregations.filter((c) => c.cidadeId === filters.cidadeId);
     const scopedCities = filters.cidadeId === "all" ? cities : cities.filter((c) => c.id === filters.cidadeId);
     const year = selectedYear || new Date().getFullYear();
+    const availableYears = this.getAvailableYears(youth);
+    const range = growthYearRange || {
+      from: Math.min(...availableYears),
+      to: Math.max(...availableYears),
+    };
 
     return {
       cities,
@@ -48,7 +53,8 @@ export const DashboardService = {
       demografia: this.buildDemografia(filtered),
       charts: this.buildCharts(filtered, cities, congregations),
       yearCharts: this.buildYearCharts(filtered, year),
-      availableYears: this.getAvailableYears(youth),
+      growth: this.buildGrowthByCity(filtered, cities, range),
+      availableYears,
       lists: await this.buildLists(filtered, cities, congregations, events),
     };
   },
@@ -91,6 +97,28 @@ export const DashboardService = {
       admissoesPorMes: { labels: MONTH_LABELS, values: admissoesPorMes },
       batizadosPorMes: { labels: MONTH_LABELS, values: batizadosPorMes },
     };
+  },
+
+  /**
+   * Cumulative headcount per city, year by year, inside [from, to] --
+   * lets you compare each city's growth trend on the same chart instead of
+   * a single-point-in-time breakdown like the other "por cidade" charts.
+   * Uses createdAt (when the record entered the system) as the growth
+   * signal, since there's no separate "left the group" date to subtract.
+   */
+  buildGrowthByCity(filtered, cities, { from, to }) {
+    const years = [];
+    for (let y = from; y <= to; y++) years.push(y);
+
+    const series = cities.map((city) => {
+      const cityYouth = filtered.filter((y) => y.cidadeId === city.id);
+      const values = years.map(
+        (year) => cityYouth.filter((y) => y.createdAt && Number(y.createdAt.slice(0, 4)) <= year).length
+      );
+      return { label: city.nome, values };
+    });
+
+    return { labels: years.map(String), series };
   },
 
   buildCards(filtered, scopedCities, scopedCongregations, events) {

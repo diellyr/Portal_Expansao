@@ -42,7 +42,7 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 
 ## Funcionalidades
 
-- **Dashboard** com 11 cards de indicadores, uma seção de **demografia** (total geral/ativos/sem igreja cadastrada por sexo, aniversariantes de hoje e do mês), 12 gráficos (Chart.js — incluindo distribuição por sexo, aniversariantes por dia do mês, e três indicadores anuais por mês filtráveis por ano: cadastros, admissões e batismos), uma tabela de faixa etária cruzada por sexo, e 7 listas/alertas — tudo reativo aos filtros globais.
+- **Dashboard** com 11 cards de indicadores, uma seção de **demografia** (total geral/ativos/sem igreja cadastrada por sexo, aniversariantes de hoje e do mês), 13 gráficos (Chart.js — incluindo distribuição por sexo, aniversariantes por dia do mês, três indicadores anuais por mês filtráveis por ano: cadastros, admissões e batismos, e um comparativo de crescimento acumulado por cidade com filtro de intervalo de anos), uma tabela de faixa etária cruzada por sexo, e 7 listas/alertas — tudo reativo aos filtros globais.
 - **Cidades, Congregações, Jovens e Eventos**: cadastro completo (criar, editar, visualizar, excluir), busca, ordenação, paginação e indicadores por registro. Jovens podem ficar **sem congregação vinculada** ("sem igreja cadastrada"), refletido nos indicadores do dashboard.
 - **Foto do jovem** (JPEG, até 5MB) com prévia no formulário, miniatura clicável na lista e uma **ficha digital** (foto + todos os dados) ao clicar no nome ou na foto.
 - **Filtros globais combináveis**: cidade, congregação (escopada à cidade), status, faixa etária, batismo nas águas, batismo no Espírito Santo, prega, canta, instrumento e período — com chips removíveis mostrando os filtros ativos.
@@ -415,13 +415,15 @@ O dashboard, a página de Jovens e a página de Relatórios compartilham a mesma
 
 ## Dashboard
 
-11 cards de indicadores, 12 gráficos (com paleta de cores estável por cidade/categoria durante a sessão, tooltips com valor absoluto e percentual, e alternância Pizza/Barras para as nove cidades e faixas etárias) e 7 listas: aniversariantes do mês, próximos eventos, jovens cadastrados recentemente, ranking de cidades e congregações, jovens por instrumento e alertas de cadastros incompletos. Clicar em uma cidade no gráfico aplica o filtro daquela cidade em toda a página; o botão "Restaurar visualização" limpa os filtros.
+11 cards de indicadores, 13 gráficos (com paleta de cores estável por cidade/categoria durante a sessão, tooltips com valor absoluto e percentual, e alternância Pizza/Barras para as nove cidades e faixas etárias) e 7 listas: aniversariantes do mês, próximos eventos, jovens cadastrados recentemente, ranking de cidades e congregações, jovens por instrumento e alertas de cadastros incompletos. Clicar em uma cidade no gráfico aplica o filtro daquela cidade em toda a página; o botão "Restaurar visualização" limpa os filtros.
 
 **Demografia**: quatro cards com total geral de membros, total de membros ativos, total sem igreja cadastrada (todos com quebra por Masculino/Feminino) e aniversariantes (hoje / mês atual).
 
 **Gráficos adicionais**: distribuição percentual por sexo, aniversariantes por dia do mês (linha, dias 1 a 31) e uma tabela de faixa etária cruzada com sexo (Total/Masculino/Feminino por faixa).
 
 **Indicadores anuais**: um seletor de Ano filtra três gráficos de barras — cadastros realizados no ano por mês, admissões no ano por mês (baseado na data de entrada) e batizados no ano por mês (baseado na data de batismo nas águas) — todos respeitando os filtros globais já aplicados.
+
+**Comparativo de crescimento**: gráfico de linha com uma linha por cidade, mostrando o total acumulado de jovens cadastrados ano a ano (baseado na data de cadastro) — útil para comparar a velocidade de crescimento entre cidades ao longo do tempo. Dois seletores, **De** e **Até**, definem o intervalo de anos exibido (populados a partir dos anos com dados reais); se "De" ficar maior que "Até" — ou vice-versa — o outro seletor se ajusta automaticamente para manter o intervalo válido.
 
 ## Relatórios
 
@@ -718,7 +720,7 @@ YouthService
 YouthRepository → getDataMode() → IndexedDB  ou  Supabase
 ```
 
-A autenticação continua demonstrativa (`js/services/auth-service.js`) — a troca por Supabase Auth fica para uma etapa futura, fora do escopo desta integração.
+A autenticação usa Supabase Auth de verdade (`js/services/auth-service.js`) — veja [Autenticação](#autenticação).
 
 ## Aviso sobre dados sensíveis
 

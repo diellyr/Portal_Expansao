@@ -65,6 +65,23 @@
           <div class="grid grid-charts" id="year-charts-grid"></div>
         </section>
 
+        <section aria-label="Comparativo de crescimento">
+          <div class="row-between" style="flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-3);">
+            <h3 class="section-title" style="margin-bottom: 0;"><i data-lucide="trending-up" class="icon"></i> Comparativo de crescimento</h3>
+            <div style="display:flex; gap: var(--space-3); flex-wrap: wrap;">
+              <div class="filter-field" style="max-width: 140px;">
+                <label for="growth-year-from">De</label>
+                <select id="growth-year-from" class="form-control"></select>
+              </div>
+              <div class="filter-field" style="max-width: 140px;">
+                <label for="growth-year-to">Até</label>
+                <select id="growth-year-to" class="form-control"></select>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-charts" id="growth-charts-grid"></div>
+        </section>
+
         <section aria-label="Listas e alertas">
           <h3 class="section-title"><i data-lucide="list" class="icon"></i> Listas e alertas</h3>
           <div class="grid grid-lists" id="lists-grid"></div>
