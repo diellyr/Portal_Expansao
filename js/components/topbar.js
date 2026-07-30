@@ -3,6 +3,7 @@ import { getSession, logout } from "../services/auth-service.js";
 import { getTheme, toggleTheme } from "../services/theme-service.js";
 import { getLang, setLang, t } from "../services/i18n-service.js";
 import { NotificationService } from "../services/notification-service.js";
+import { openChangePasswordModal } from "./change-password-modal.js";
 
 export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
   container.innerHTML = "";
@@ -126,11 +127,46 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
     window.location.reload();
   });
 
+  const userMenuDropdown = el("div", { class: "notif-dropdown", id: "user-menu-dropdown", hidden: true }, [
+    el(
+      "button",
+      {
+        type: "button",
+        class: "notif-item user-menu-item",
+        onClick: () => {
+          userMenuDropdown.setAttribute("hidden", "");
+          openChangePasswordModal();
+        },
+      },
+      [el("i", { "data-lucide": "key-round", class: "icon icon-sm" }), el("span", {}, "Alterar senha")]
+    ),
+  ]);
+  const userMenuBtn = el(
+    "button",
+    {
+      type: "button",
+      class: "topbar-user",
+      id: "user-menu-btn",
+      "aria-haspopup": "true",
+      "aria-expanded": "false",
+    },
+    [el("div", { class: "topbar-user-avatar" }, initials), el("span", {}, session?.email || "Administrador")]
+  );
+  const userMenuWrap = el("div", { class: "notif-wrap" }, [userMenuBtn, userMenuDropdown]);
+
+  userMenuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isHidden = userMenuDropdown.hasAttribute("hidden");
+    if (isHidden) userMenuDropdown.removeAttribute("hidden");
+    else userMenuDropdown.setAttribute("hidden", "");
+    userMenuBtn.setAttribute("aria-expanded", isHidden ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!userMenuWrap.contains(e.target)) userMenuDropdown.setAttribute("hidden", "");
+  });
+
   const right = el("div", { class: "topbar-right" }, [
-    el("div", { class: "topbar-user" }, [
-      el("div", { class: "topbar-user-avatar" }, initials),
-      el("span", {}, session?.email || "Administrador"),
-    ]),
+    userMenuWrap,
     themeToggle,
     notifWrap,
     langSelect,

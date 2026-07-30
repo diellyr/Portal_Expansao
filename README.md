@@ -164,6 +164,25 @@ O login usa **Supabase Auth** de verdade — não há e-mail/senha fixos no cód
 - As políticas de RLS das tabelas devem estar liberadas para o papel `authenticated` (não mais para `anon`) — veja o SQL na seção de Supabase.
 - Além de autenticar, cada login tem um **perfil** (papel + cidade, quando aplicável) que define o que a pessoa pode ver e editar — veja [Perfis e permissões (RBAC)](#perfis-e-permissões-rbac).
 
+### Trocar a própria senha
+
+Qualquer pessoa logada pode trocar a própria senha em **Menu do usuário (nome/e-mail no canto superior direito) → Alterar senha**. O formulário pede a senha atual (revalidada com um novo login silencioso antes de trocar, para confirmar que é mesmo a pessoa dona da conta) e a nova senha (mínimo 6 caracteres, com confirmação). Usa `auth.updateUser()` do Supabase — só a chave anon, sem depender de e-mail.
+
+### Esqueci minha senha
+
+Na tela de login, o link **"Esqueci minha senha"** abre um formulário para informar o e-mail. O app chama `auth.resetPasswordForEmail()`, que envia (se aquele e-mail tiver conta cadastrada) uma mensagem com um link de redefinição — o mesmo e-mail usado para fazer login, que é também o que fica salvo em `user_profiles.email`; não existe um campo de e-mail "de contato" separado, o e-mail de login **é** o e-mail de recuperação.
+
+Por segurança, o Supabase sempre responde com sucesso nessa chamada, exista ou não uma conta com aquele e-mail (evita que alguém descubra quais e-mails têm cadastro só tentando o "esqueci minha senha").
+
+O link do e-mail leva para `redefinir-senha.html` (`js/pages/redefinir-senha.js`), uma página fora da área logada que:
+1. Detecta o token de recuperação que o Supabase anexa à URL (automático, via `detectSessionInUrl` do `supabase-js`) e cria uma sessão temporária só para essa troca.
+2. Mostra um formulário de nova senha + confirmação; ao salvar, chama `auth.updateUser({ password })` e depois `auth.signOut()` (encerra a sessão de recuperação — a pessoa faz login normalmente em seguida, com a senha nova).
+3. Se o link já expirou ou é inválido, mostra uma mensagem pedindo para solicitar um novo.
+
+**Configuração obrigatória no painel do Supabase** para o link do e-mail funcionar: em **Authentication → URL Configuration → Redirect URLs**, adicione a URL completa de `redefinir-senha.html` do seu site (ex.: `https://SEU-USUARIO.github.io/Portal_Expansao/redefinir-senha.html`) — o Supabase recusa o redirecionamento para qualquer URL que não esteja nessa lista.
+
+> O envio do e-mail usa o serviço de e-mail do próprio Supabase, que é limitado e pensado para testes (a mesma limitação já vale para o e-mail de confirmação de conta). Para uso real, configure um SMTP próprio em **Authentication → Providers → Email → SMTP Settings** — sem isso, o link de redefinição pode demorar, cair em spam ou não chegar.
+
 ## Perfis e permissões (RBAC)
 
 > Só existe controle de permissões por papel (RBAC) **com o Supabase ativo**. No modo IndexedDB (sem Supabase configurado), não há conceito de múltiplos usuários — quem consegue entrar tem acesso total, como sempre funcionou.

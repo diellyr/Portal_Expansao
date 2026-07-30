@@ -9,6 +9,27 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.6.0] — 2026-07-30
+
+### Adicionado
+- **Alterar senha**: novo item no menu do usuário (topbar) para qualquer
+  pessoa logada trocar a própria senha, com revalidação da senha atual antes
+  de aplicar a nova (`js/components/change-password-modal.js`).
+- **Esqueci minha senha**: link na tela de login que envia um e-mail de
+  redefinição via `auth.resetPasswordForEmail()`
+  (`js/components/forgot-password-modal.js`) e uma página nova,
+  `redefinir-senha.html` (`js/pages/redefinir-senha.js`), para definir a
+  nova senha a partir do link recebido.
+- Documentação no README sobre os dois fluxos, incluindo a exigência de
+  cadastrar a URL de `redefinir-senha.html` em Authentication → URL
+  Configuration → Redirect URLs no painel do Supabase.
+
+### Corrigido
+- `.form-group[hidden]` estava sendo sobrescrito visualmente pela regra
+  `.form-group { display: flex }`, fazendo o campo de cidade no formulário
+  de usuários não esconder de verdade para perfis regionais (mesma classe
+  de bug já corrigida antes para os controles de foto).
+
 ## [1.5.0] — 2026-07-30
 
 ### Adicionado

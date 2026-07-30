@@ -2,6 +2,7 @@ import { login, isAuthenticated } from "../services/auth-service.js";
 import { APP_VERSION } from "../config/constants.js";
 import { qs, refreshIcons } from "../utils/dom-utils.js";
 import { t } from "../services/i18n-service.js";
+import { openForgotPasswordModal } from "../components/forgot-password-modal.js";
 
 if (isAuthenticated()) {
   window.location.href = "pages/dashboard.html";
@@ -45,4 +46,9 @@ form.addEventListener("submit", async (event) => {
     submitBtn.disabled = false;
     passwordError.textContent = result.error;
   }
+});
+
+qs("#forgot-password-link").addEventListener("click", (event) => {
+  event.preventDefault();
+  openForgotPasswordModal();
 });
