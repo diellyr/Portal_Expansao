@@ -9,6 +9,24 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.6.1] — 2026-07-30
+
+### Corrigido
+- Em telas de celular (≤480px), o botão de avatar/e-mail que abre o menu
+  "Alterar senha" ficava totalmente escondido por uma regra de CSS antiga
+  que datava de quando esse elemento era só decorativo — agora que ele
+  também é o gatilho do menu, essa regra foi removida.
+- Corrigido um "estouro" de layout (grid não encolhendo) que fazia a barra
+  superior ficar mais larga que a tela em aparelhos estreitos, empurrando
+  ícones (tema, notificações, idioma, sair) para fora da área visível sem
+  aviso de rolagem.
+- O menu "Alterar senha", ao abrir, aparecia cortado/fora da tela em
+  celulares porque a caixa (larga, feita para a lista de notificações) era
+  ancorada pelo lado errado para a posição do avatar; agora tem largura e
+  posição próprias.
+- Item "Usuários" no menu lateral aparecia como o texto cru `nav.usuarios`
+  por falta de tradução — adicionado nos três idiomas (PT/ES/EN).
+
 ## [1.6.0] — 2026-07-30
 
 ### Adicionado
