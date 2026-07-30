@@ -179,7 +179,20 @@ O link do e-mail leva para `redefinir-senha.html` (`js/pages/redefinir-senha.js`
 2. Mostra um formulário de nova senha + confirmação; ao salvar, chama `auth.updateUser({ password })` e depois `auth.signOut()` (encerra a sessão de recuperação — a pessoa faz login normalmente em seguida, com a senha nova).
 3. Se o link já expirou ou é inválido, mostra uma mensagem pedindo para solicitar um novo.
 
-**Configuração obrigatória no painel do Supabase** para o link do e-mail funcionar: em **Authentication → URL Configuration → Redirect URLs**, adicione a URL completa de `redefinir-senha.html` do seu site (ex.: `https://SEU-USUARIO.github.io/Portal_Expansao/redefinir-senha.html`) — o Supabase recusa o redirecionamento para qualquer URL que não esteja nessa lista.
+**Configuração obrigatória no painel do Supabase** para o link do e-mail funcionar:
+
+1. No painel do seu projeto, clique em **Authentication** no menu lateral.
+2. Abra a seção **URL Configuration**.
+3. No campo **Redirect URLs**, clique em **Add URL** e cole a URL completa de `redefinir-senha.html` do seu site publicado, por exemplo:
+   ```
+   https://SEU-USUARIO.github.io/Portal_Expansao/redefinir-senha.html
+   ```
+4. Clique em **Save**.
+
+Detalhes importantes:
+- A URL precisa ser **exata** (protocolo `https://`, caminho e nome do arquivo certinhos) — o Supabase compara literalmente e recusa o redirecionamento para qualquer URL fora dessa lista.
+- Adicionar essa URL não remove nenhuma outra que já esteja cadastrada ali — é só mais uma entrada na lista.
+- Se o domínio do site mudar no futuro (por exemplo, sair do `github.io` para um domínio próprio), essa URL precisa ser atualizada/adicionada de novo, senão o link de redefinição para de funcionar mesmo com o site certo no ar.
 
 > O envio do e-mail usa o serviço de e-mail do próprio Supabase, que é limitado e pensado para testes (a mesma limitação já vale para o e-mail de confirmação de conta). Para uso real, configure um SMTP próprio em **Authentication → Providers → Email → SMTP Settings** — sem isso, o link de redefinição pode demorar, cair em spam ou não chegar.
 
