@@ -1,5 +1,5 @@
 import { el, refreshIcons } from "../utils/dom-utils.js";
-import { createPieChart, createBarChart, createLineChart, destroyChart, setCategoryClickHandler } from "../services/chart-service.js";
+import { createPieChart, createBarChart, createLineChart, createMultiLineChart, destroyChart, setCategoryClickHandler } from "../services/chart-service.js";
 import { emptyState } from "./empty-state.js";
 import { formatNumber, formatPercent } from "../utils/formatters.js";
 
@@ -95,6 +95,77 @@ export function createChartCard({ title, description, defaultType = "pie", toggl
   function setData(labels, values) {
     currentLabels = labels;
     currentValues = values;
+    render();
+  }
+
+  return { card, setData, canvasId };
+}
+
+/**
+ * Line chart with one line per entry in `series` (e.g. one per city) sharing
+ * the same X-axis labels (e.g. years) -- used to compare trends across
+ * categories instead of showing a single breakdown at one point in time.
+ */
+export function createMultiLineChartCard({ title, description, unitLabel = "jovens" }) {
+  cardCounter += 1;
+  const canvasId = `chart-${cardCounter}-${Date.now()}`;
+  let currentLabels = [];
+  let currentSeries = [];
+
+  const canvasWrap = el("div", { class: "chart-card-canvas-wrap" });
+  const srTableWrap = el("div", { class: "chart-card-sr-table visually-hidden" });
+
+  const card = el("div", { class: "surface chart-card" }, [
+    el("div", { class: "chart-card-header" }, [
+      el("div", {}, [
+        el("div", { class: "chart-card-title" }, title),
+        description ? el("p", { class: "chart-card-desc" }, description) : null,
+      ]),
+    ]),
+    canvasWrap,
+    srTableWrap,
+  ]);
+
+  function renderCanvas() {
+    canvasWrap.innerHTML = "";
+    const canvas = el("canvas", { id: canvasId, role: "img", "aria-label": title });
+    canvasWrap.appendChild(canvas);
+    return canvas;
+  }
+
+  function renderSRTable() {
+    if (!currentLabels.length || !currentSeries.length) {
+      srTableWrap.innerHTML = "";
+      return;
+    }
+    const headerCols = currentSeries.map((s) => `<th>${s.label}</th>`).join("");
+    const rows = currentLabels
+      .map((label, i) => {
+        const cells = currentSeries.map((s) => `<td>${formatNumber(s.values[i] ?? 0)}</td>`).join("");
+        return `<tr><th scope="row">${label}</th>${cells}</tr>`;
+      })
+      .join("");
+    srTableWrap.innerHTML = `<table class="sr-table"><caption>Tabela equivalente ao gráfico "${title}"</caption><thead><tr><th>Ano</th>${headerCols}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function render() {
+    destroyChart(canvasId);
+    const hasData = currentSeries.some((s) => s.values.some((v) => v > 0));
+    if (!currentLabels.length || !currentSeries.length || !hasData) {
+      canvasWrap.innerHTML = "";
+      canvasWrap.appendChild(emptyState({ icon: "trending-up", title: "Sem dados para este gráfico" }));
+      renderSRTable();
+      return;
+    }
+    const canvas = renderCanvas();
+    createMultiLineChart(canvas, { labels: currentLabels, series: currentSeries, unitLabel });
+    renderSRTable();
+    refreshIcons();
+  }
+
+  function setData(labels, series) {
+    currentLabels = labels;
+    currentSeries = series;
     render();
   }
 

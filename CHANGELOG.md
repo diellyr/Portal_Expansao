@@ -9,6 +9,24 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.7.0] — 2026-07-30
+
+### Adicionado
+- Novo gráfico no Dashboard, **"Crescimento de jovens por cidade"**: linha
+  de crescimento acumulado (uma linha por cidade) com dois seletores, **De**
+  e **Até**, para escolher o intervalo de anos comparado — complementa o
+  "Comparativo de jovens por cidade" existente, que só mostra uma foto do
+  momento atual. Suporte para gráficos de múltiplas linhas adicionado em
+  `chart-service.js`/`chart-card.js` (`createMultiLineChart`/
+  `createMultiLineChartCard`), reaproveitando as mesmas cores estáveis por
+  cidade usadas nos demais gráficos.
+
+### Removido
+- Mensagem "Login demonstrativo — sem autenticação real..." na tela de
+  login, que ainda citava a antiga credencial de demonstração
+  (`admin123`) mesmo depois da troca para autenticação real via Supabase
+  Auth.
+
 ## [1.6.2] — 2026-07-30
 
 ### Corrigido

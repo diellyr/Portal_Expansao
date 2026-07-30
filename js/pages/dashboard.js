@@ -6,7 +6,7 @@ import { YouthService } from "../services/youth-service.js";
 import { defaultFilters } from "../services/filter-service.js";
 import { renderFilterBar, renderFilterChips } from "../components/filter-bar.js";
 import { renderMetricCards } from "../components/metric-card.js";
-import { createChartCard } from "../components/chart-card.js";
+import { createChartCard, createMultiLineChartCard } from "../components/chart-card.js";
 import { renderLoading } from "../components/loading.js";
 import { emptyState } from "../components/empty-state.js";
 import { el, qs, refreshIcons } from "../utils/dom-utils.js";
@@ -22,8 +22,11 @@ let cities = [];
 let congregations = [];
 let instruments = [];
 let selectedYear = new Date().getFullYear();
+let growthFromYear = null;
+let growthToYear = null;
 const charts = {};
 const yearCharts = {};
+let growthChartCard = null;
 
 async function init() {
   renderLoading(qs("#metric-cards"), "Carregando indicadores...");
@@ -31,11 +34,26 @@ async function init() {
   const youth = await YouthService.list();
   instruments = [...new Set(youth.map((y) => y.instrumento).filter(Boolean))].sort();
 
+  const ascYears = DashboardService.getAvailableYears(youth).sort((a, b) => a - b);
+  growthFromYear = ascYears[0];
+  growthToYear = ascYears[ascYears.length - 1];
+
   buildChartCards();
   buildYearChartCards();
+  buildGrowthChartCard();
   renderFiltersUI();
   qs("#year-select").addEventListener("change", async (e) => {
     selectedYear = Number(e.target.value);
+    await refresh();
+  });
+  qs("#growth-year-from").addEventListener("change", async (e) => {
+    growthFromYear = Number(e.target.value);
+    if (growthFromYear > growthToYear) growthToYear = growthFromYear;
+    await refresh();
+  });
+  qs("#growth-year-to").addEventListener("change", async (e) => {
+    growthToYear = Number(e.target.value);
+    if (growthToYear < growthFromYear) growthFromYear = growthToYear;
     await refresh();
   });
   await refresh();
@@ -146,6 +164,32 @@ function populateYearSelect(years) {
   select.value = String(selectedYear);
 }
 
+function buildGrowthChartCard() {
+  const grid = qs("#growth-charts-grid");
+  grid.innerHTML = "";
+  growthChartCard = createMultiLineChartCard({
+    title: "Crescimento de jovens por cidade",
+    description: "Total acumulado de jovens cadastrados por cidade, ano a ano, no período selecionado.",
+  });
+  grid.appendChild(growthChartCard.card);
+}
+
+function fillYearSelect(select, years, selected) {
+  const currentValues = Array.from(select.options).map((o) => o.value);
+  const nextValues = years.map(String);
+  if (currentValues.join(",") !== nextValues.join(",")) {
+    select.innerHTML = "";
+    years.forEach((y) => select.appendChild(new Option(String(y), String(y), false, y === selected)));
+  }
+  select.value = String(selected);
+}
+
+function populateGrowthYearSelects(years) {
+  const ascYears = [...years].sort((a, b) => a - b);
+  fillYearSelect(qs("#growth-year-from"), ascYears, growthFromYear);
+  fillYearSelect(qs("#growth-year-to"), ascYears, growthToYear);
+}
+
 function demografiaCard(title, icon, tiles) {
   return el("div", { class: "surface metric-card" }, [
     el("div", { class: "metric-card-top" }, [
@@ -210,9 +254,10 @@ function renderFaixaEtariaSexoTable(rows) {
 }
 
 async function refresh() {
-  const { cards, charts: chartData, lists, demografia, yearCharts: yearChartData, availableYears } = await DashboardService.build(
+  const { cards, charts: chartData, lists, demografia, yearCharts: yearChartData, growth, availableYears } = await DashboardService.build(
     filters,
-    selectedYear
+    selectedYear,
+    { from: growthFromYear, to: growthToYear }
   );
 
   renderMetricCards(qs("#metric-cards"), [
@@ -249,6 +294,9 @@ async function refresh() {
   yearCharts.cadastrosPorMes.setData(yearChartData.cadastrosPorMes.labels, yearChartData.cadastrosPorMes.values);
   yearCharts.admissoesPorMes.setData(yearChartData.admissoesPorMes.labels, yearChartData.admissoesPorMes.values);
   yearCharts.batizadosPorMes.setData(yearChartData.batizadosPorMes.labels, yearChartData.batizadosPorMes.values);
+
+  populateGrowthYearSelects(availableYears);
+  growthChartCard.setData(growth.labels, growth.series);
 
   renderLists(lists);
 }

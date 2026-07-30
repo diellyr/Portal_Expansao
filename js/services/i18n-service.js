@@ -28,8 +28,6 @@ const DICTS = {
     "login.email": "E-mail",
     "login.password": "Senha",
     "login.enter": "Entrar",
-    "login.notePrefix": "Login demonstrativo — sem autenticação real. Use",
-    "login.noteSuffix": "Os dados ficam salvos apenas neste navegador (IndexedDB).",
   },
   es: {
     "app.subtitle": "Gestión Regional",
@@ -52,8 +50,6 @@ const DICTS = {
     "login.email": "Correo electrónico",
     "login.password": "Contraseña",
     "login.enter": "Entrar",
-    "login.notePrefix": "Inicio de sesión de demostración — sin autenticación real. Use",
-    "login.noteSuffix": "Los datos se guardan solo en este navegador (IndexedDB).",
   },
   en: {
     "app.subtitle": "Regional Management",
@@ -76,8 +72,6 @@ const DICTS = {
     "login.email": "Email",
     "login.password": "Password",
     "login.enter": "Sign in",
-    "login.notePrefix": "Demo login — no real authentication. Use",
-    "login.noteSuffix": "Data is saved only in this browser (IndexedDB).",
   },
 };
 
