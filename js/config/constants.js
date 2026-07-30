@@ -1,7 +1,7 @@
 export const APP_NAME = "Portal Expansão";
 export const APP_SUBTITLE = "Gestão Regional";
 // Keep this in sync with version.md at the repository root.
-export const APP_VERSION = "1.3.1";
+export const APP_VERSION = "1.4.0";
 
 export const DB_NAME = "portal_expansao_db";
 export const DB_VERSION = 1;
@@ -16,10 +16,6 @@ export const STORES = {
 };
 
 export const AUTH_SESSION_KEY = "portal_expansao_session";
-export const DEMO_CREDENTIALS = {
-  email: "admin@portalexpansao.local",
-  password: "Jesuseachave",
-};
 
 export const YOUTH_STATUS = {
   ATIVO: "ativo",
