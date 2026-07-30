@@ -10,5 +10,5 @@
  * is only useful if you want the values checked into the repo instead of
  * typed in on every browser/device.
  */
-export const SUPABASE_URL = "";
-export const SUPABASE_ANON_KEY = "";
+export const SUPABASE_URL = "https://jhgzywafedwbfsbhaalr.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_T_MTGjKpk1xGYonBxNfgfw_VLxVMp5e";
