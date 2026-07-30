@@ -450,9 +450,10 @@ Na prática, você não precisa mexer em nada nessa tela do Supabase — o app j
 - **Project URL** (algo como `https://xxxxxxxxxxxx.supabase.co`)
 - **anon public key** (uma chave longa começando geralmente com `eyJ...`)
 
-E preenchê-los em **Administração → Fonte de dados**, no formulário abaixo da chave seletora IndexedDB/Supabase. Ao clicar em **Salvar credenciais**, elas ficam gravadas neste navegador (`localStorage`) — não é preciso editar nenhum arquivo nem mexer em variáveis de ambiente.
+Existem dois lugares onde preencher esses valores — **use os dois juntos** (não é "ou um ou outro"):
 
-Se preferir manter as credenciais versionadas no repositório (por exemplo, para não digitá-las de novo em cada navegador), também é possível preenchê-las em `js/config/supabase-config.js` — mas isso é opcional; o formulário na tela sempre tem prioridade sobre o arquivo.
+1. **`js/config/supabase-config.js`** — edite as duas linhas `SUPABASE_URL` e `SUPABASE_ANON_KEY` diretamente nesse arquivo e faça commit. **Este é o passo obrigatório** para reaproveitar este código apontando para outro projeto Supabase: como o login (próxima seção) depende do Supabase estar configurado, e a tela onde dava para digitar as credenciais pelo formulário fica atrás do próprio login, um navegador/dispositivo novo só consegue entrar se esses valores já estiverem gravados aqui no código.
+2. **Administração → Fonte de dados** (formulário na tela, abaixo da chave seletora IndexedDB/Supabase) — permite trocar as credenciais depois, sem precisar editar código; ficam salvas só neste navegador (`localStorage`), com prioridade sobre o que estiver no arquivo. Útil para testar outras credenciais temporariamente, mas não substitui o passo 1 para quem for acessar de outros dispositivos.
 
 A chave `anon` é pública por natureza (é para ser exposta no navegador) — a segurança real vem das políticas de RLS (passo 3), não do sigilo da chave.
 
