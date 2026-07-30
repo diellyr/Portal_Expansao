@@ -18,6 +18,7 @@ import {
   isSupabaseConfigured,
 } from "../services/supabase-settings-service.js";
 import { logImport, onImportLog } from "../services/import-log-service.js";
+import { getCurrentUserProfile, isAdminProfile } from "../services/user-profile-service.js";
 
 const ok = await bootstrapPage({ activeKey: "administracao", title: "Administração" });
 if (ok) init();
@@ -32,6 +33,12 @@ let currentFileFormat = "";
 let duplicateStrategy = "ignorar";
 
 async function init() {
+  const profile = await getCurrentUserProfile();
+  if (!isAdminProfile(profile)) {
+    window.location.href = "dashboard.html";
+    return;
+  }
+
   // Wired up first and unconditionally: if the active data source is broken
   // (e.g. Supabase misconfigured), the user must still be able to reach this
   // switch to get back to a working backend.

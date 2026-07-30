@@ -9,6 +9,27 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.5.0] — 2026-07-30
+
+### Adicionado
+- Controle de acesso por papel (RBAC), disponível apenas com o Supabase
+  ativo: sete perfis (Administrador, Líder Simplifique Regional,
+  Conselheiro Regional, Líder Simplifique, Conselheiro, Convidado Regional
+  e Convidado Local), cada um com um recorte diferente de leitura/escrita
+  por cidade — veja a seção "Perfis e permissões (RBAC)" no README.
+- Módulo **Usuários** (`pages/usuarios.html`), um item de menu próprio
+  (visível só para o Administrador) para cadastrar novos logins, definir o
+  perfil e a cidade de cada um, editar esse vínculo depois ou remover o
+  acesso de alguém.
+- SQL da tabela `user_profiles`, funções auxiliares (`current_user_role`,
+  `current_user_cidade_id`, `is_admin`, `is_regional`, `is_city_editor`) e
+  políticas de RLS por papel para `cities`, `congregations`, `youth` e
+  `events` (com a exceção de eventos: Líder Simplifique/Conselheiro veem
+  eventos de todas as cidades, mas só criam/editam/excluem os da própria).
+- Acesso às páginas **Administração** e **Usuários** agora é restrito ao
+  perfil Administrador tanto no menu lateral (item some para os demais
+  perfis) quanto na própria página (redirecionamento para o dashboard).
+
 ## [1.4.0] — 2026-07-30
 
 ### Adicionado

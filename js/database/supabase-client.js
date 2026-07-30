@@ -27,3 +27,23 @@ export function getSupabaseClient() {
   }
   return clientPromise;
 }
+
+/**
+ * Creates a throwaway Supabase client that never touches localStorage or
+ * the shared session. Used only for auth.signUp() when creating a new user
+ * from Administração → Usuários -- signUp() would otherwise silently swap
+ * the admin's own active session for the new user's session, since the
+ * default client persists whatever session it last received.
+ */
+export async function createIsolatedSupabaseClient() {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase não está configurado. Preencha a URL e a chave anon em Administração → Fonte de dados."
+    );
+  }
+  const { url, anonKey } = getSupabaseCredentials();
+  const { createClient } = await import(/* @vite-ignore */ SUPABASE_JS_CDN_URL);
+  return createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}

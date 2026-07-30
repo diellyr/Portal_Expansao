@@ -1,7 +1,7 @@
 export const APP_NAME = "Portal Expansão";
 export const APP_SUBTITLE = "Gestão Regional";
 // Keep this in sync with version.md at the repository root.
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 export const DB_NAME = "portal_expansao_db";
 export const DB_VERSION = 1;
@@ -108,7 +108,8 @@ export const NAV_ITEMS = [
   { href: "jovens.html", icon: "users", label: "Jovens", key: "jovens" },
   { href: "eventos.html", icon: "calendar", label: "Eventos", key: "eventos" },
   { href: "relatorios.html", icon: "bar-chart-3", label: "Relatórios", key: "relatorios" },
-  { href: "administracao.html", icon: "settings", label: "Administração", key: "administracao" },
+  { href: "usuarios.html", icon: "user-cog", label: "Usuários", key: "usuarios", adminOnly: true },
+  { href: "administracao.html", icon: "settings", label: "Administração", key: "administracao", adminOnly: true },
 ];
 
 export const DEMO_FLAG = "isDemo";
