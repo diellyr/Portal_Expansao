@@ -9,6 +9,27 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.4.0] — 2026-07-30
+
+### Adicionado
+- Autenticação real via Supabase Auth, substituindo o login demonstrativo.
+  A conta de administrador passa a ser criada e gerenciada diretamente no
+  painel do Supabase (Authentication → Users), não mais no código-fonte.
+- Documentação (README) do fluxo completo de autenticação: exigência de
+  Supabase configurado para conseguir entrar, dependência de
+  `js/config/supabase-config.js` para login funcionar em qualquer
+  dispositivo, e a política de RLS restrita ao papel `authenticated`
+  (Opção C) recomendada para uso com dados reais.
+
+### Removido
+- Credenciais de login fixas (`DEMO_CREDENTIALS`) removidas de
+  `js/config/constants.js`. O sistema não guarda mais nenhuma senha no
+  código-fonte.
+
+### Alterado
+- `logout()` agora também encerra a sessão no Supabase, além de limpar o
+  estado local.
+
 ## [1.3.1] — 2026-07-29
 
 ### Adicionado

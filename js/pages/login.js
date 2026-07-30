@@ -23,7 +23,7 @@ const emailError = qs("#email-error");
 const passwordError = qs("#password-error");
 const submitBtn = qs("#login-submit");
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   emailError.textContent = "";
   passwordError.textContent = "";
@@ -38,11 +38,11 @@ form.addEventListener("submit", (event) => {
   }
 
   submitBtn.disabled = true;
-  const ok = login(emailInput.value, passwordInput.value);
-  if (ok) {
+  const result = await login(emailInput.value, passwordInput.value);
+  if (result.ok) {
     window.location.href = "pages/dashboard.html";
   } else {
     submitBtn.disabled = false;
-    passwordError.textContent = "E-mail ou senha inválidos.";
+    passwordError.textContent = result.error;
   }
 });

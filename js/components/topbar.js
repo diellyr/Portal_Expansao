@@ -138,8 +138,8 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
       "button",
       {
         class: "btn btn-secondary btn-sm",
-        onClick: () => {
-          logout();
+        onClick: async () => {
+          await logout();
           window.location.href = "../index.html";
         },
       },

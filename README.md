@@ -21,7 +21,7 @@ Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado c
 - [Estrutura de arquivos](#estrutura-de-arquivos)
 - [Executar localmente](#executar-localmente)
 - [Publicar no GitHub Pages](#publicar-no-github-pages)
-- [Login demonstrativo](#login-demonstrativo)
+- [Autenticação](#autenticação)
 - [Banco de dados local (IndexedDB)](#banco-de-dados-local-indexeddb)
 - [Filtros globais](#filtros-globais)
 - [Dashboard](#dashboard)
@@ -53,6 +53,7 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 - **Alertas** (sino na barra superior) com aniversariantes do dia, próximos eventos e cadastros incompletos, calculados a partir dos dados reais.
 - **Idioma** da interface (Português, Espanhol, Inglês) selecionável na barra superior — a tradução cobre a navegação, a barra superior e a tela de login; o conteúdo específico de cada página permanece em português nesta versão.
 - **Fonte de dados alternável** (IndexedDB ou Supabase) em Administração, para testar a migração para um banco real — veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento).
+- **Autenticação real** via Supabase Auth (substitui o login demonstrativo anterior) — veja [Autenticação](#autenticação).
 
 ## Tecnologias
 
@@ -62,7 +63,7 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 - Parser de CSV próprio (`js/parsers/csv-parser.js`), sem dependências externas.
 - Bibliotecas carregadas via CDN (jsDelivr) com versão fixa — nenhum passo de build é necessário.
 
-Não são usados React/Vue/Angular, TypeScript, Node.js como servidor, PHP, Python, SQLite/banco externo, frameworks CSS ou autenticação real.
+Não são usados React/Vue/Angular, TypeScript, Node.js como servidor, PHP, Python, SQLite/banco externo ou frameworks CSS. A autenticação (login) usa o Supabase Auth — veja [Autenticação](#autenticação).
 
 ## Arquitetura
 
@@ -86,7 +87,7 @@ Nenhuma página ou componente acessa o IndexedDB diretamente — todo acesso pas
 
 ```
 portal-expansao/
-├── index.html                 # Login demonstrativo
+├── index.html                 # Tela de login (Supabase Auth)
 ├── .nojekyll                  # Compatibilidade com GitHub Pages
 ├── pages/                     # HTML de cada página interna
 │   ├── dashboard.html
@@ -151,19 +152,15 @@ Alternativas equivalentes: `npx serve`, extensão "Live Server" do VS Code, ou q
 3. O arquivo `.nojekyll` já está incluso para evitar que o GitHub Pages ignore pastas/arquivos iniciados com `_`.
 4. Todos os caminhos usados no projeto são **relativos** (nunca iniciando com `/`), então a aplicação funciona tanto na raiz de um domínio quanto em um subdiretório de projeto (`usuario.github.io/repositorio/`).
 
-## Login demonstrativo
+## Autenticação
 
-```
-E-mail: admin@portalexpansao.local
-Senha:  admin123
-```
+O login usa **Supabase Auth** de verdade — não há e-mail/senha fixos no código-fonte.
 
-Este login é **apenas demonstrativo**:
-
-- Não existe autenticação real nem criptografia — as credenciais estão no código-fonte do frontend (`js/config/constants.js`).
-- A sessão é guardada em `sessionStorage` apenas para controlar a navegação entre páginas.
-- **Não utilize dados reais sensíveis** em uma instância publicada publicamente, já que qualquer pessoa com acesso ao site consegue ver o código-fonte e as credenciais.
-- Na versão futura com Supabase, o login será substituído por autenticação real (Supabase Auth).
+- A conta de administrador é criada diretamente no painel do Supabase (**Authentication → Users → Add user**), não neste repositório.
+- Ao entrar, o app chama o Supabase para validar e-mail/senha (`js/services/auth-service.js`); um sinalizador local em `sessionStorage` só controla a navegação entre páginas — a segurança de verdade vem da própria autenticação do Supabase e das políticas de RLS (veja abaixo).
+- **Login exige o Supabase configurado**: como a autenticação depende do Supabase, é necessário ter a URL e a chave anon preenchidas (veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento)) antes de conseguir entrar — sem isso, a tela mostra um erro claro em vez de travar.
+- Como a tela de Administração (onde essas credenciais são configuradas) fica **atrás do login**, um dispositivo novo só consegue entrar se a URL/chave já estiverem em `js/config/supabase-config.js` (ou seja, para acessar de vários dispositivos, esse arquivo precisa estar preenchido — não basta salvar pelo formulário em um navegador só).
+- As políticas de RLS das tabelas devem estar liberadas para o papel `authenticated` (não mais para `anon`) — veja o SQL na seção de Supabase.
 
 ## Banco de dados local (IndexedDB)
 
@@ -379,7 +376,7 @@ create table settings (
 
 ### 3. Liberar o acesso via RLS (Row Level Security)
 
-Este é o passo que mais causa dúvida: o Supabase pode criar as tabelas com **RLS ativado por padrão**, e sem uma política explícita, toda escrita feita pela chave `anon` (a única credencial que este app usa, já que ele não tem autenticação real do Supabase) é **bloqueada** com um erro parecido com:
+Este é o passo que mais causa dúvida: o Supabase pode criar as tabelas com **RLS ativado por padrão**, e sem uma política explícita, toda escrita feita pela chave `anon` é **bloqueada** com um erro parecido com:
 
 ```
 new row violates row-level security policy for table "cities"
@@ -420,7 +417,29 @@ alter table settings enable row level security;
 create policy "allow anon all" on settings for all to anon using (true) with check (true);
 ```
 
-> **Atenção para quando for usar com dados reais**: como o login deste app é só demonstrativo (sem Supabase Auth), a chave `anon` é a mesma para qualquer visitante do site. Com RLS desligado (ou com a política `using (true)` acima), qualquer pessoa que abrir o site consegue ler e escrever todos os dados direto no Supabase. Isso é aceitável em modo de teste, mas antes de cadastrar dados reais de jovens (CPF, RG, telefone) é necessário implementar autenticação de verdade (Supabase Auth) com políticas de RLS que dependam do usuário logado.
+**Opção C — Liberar só para quem fez login de verdade (recomendado depois que a autenticação estiver configurada — veja [Autenticação](#autenticação)):**
+
+```sql
+-- Remove as políticas da Opção B, se já tiverem sido criadas
+drop policy if exists "allow anon all" on cities;
+drop policy if exists "allow anon all" on congregations;
+drop policy if exists "allow anon all" on youth;
+drop policy if exists "allow anon all" on events;
+drop policy if exists "allow anon all" on import_history;
+drop policy if exists "allow anon all" on settings;
+
+-- Cria políticas que exigem uma sessão autenticada do Supabase Auth
+create policy "allow authenticated all" on cities for all to authenticated using (true) with check (true);
+create policy "allow authenticated all" on congregations for all to authenticated using (true) with check (true);
+create policy "allow authenticated all" on youth for all to authenticated using (true) with check (true);
+create policy "allow authenticated all" on events for all to authenticated using (true) with check (true);
+create policy "allow authenticated all" on import_history for all to authenticated using (true) with check (true);
+create policy "allow authenticated all" on settings for all to authenticated using (true) with check (true);
+```
+
+> Só rode a Opção C **depois** de configurar a autenticação (próxima seção) — se rodar antes, o app para de conseguir ler/escrever qualquer dado, já que nenhuma sessão autenticada existe ainda.
+
+> **Atenção para quando for usar com dados reais**: enquanto a Opção A ou B estiver ativa, a chave `anon` (que qualquer visitante do site tem, só de abrir a página) já é suficiente para ler e escrever todos os dados direto no Supabase — sem precisar nem fazer login no app. Isso é aceitável em modo de teste, mas antes de cadastrar dados reais de jovens (CPF, RG, telefone), use a Opção C, que exige um login de verdade.
 
 ### 4. Apontar o sistema para o Supabase
 
@@ -465,4 +484,4 @@ A autenticação continua demonstrativa (`js/services/auth-service.js`) — a tr
 
 ## Aviso sobre dados sensíveis
 
-Este projeto é um MVP local e demonstrativo. **Não cadastre dados pessoais sensíveis reais** (nomes completos, telefones, endereços, **RG e CPF** de jovens e famílias reais) em uma instância publicada publicamente no GitHub Pages, já que qualquer visitante consegue inspecionar o código-fonte e as credenciais de demonstração. O cadastro de Jovens inclui campos de documento (RG, CPF) para espelhar a ficha física de membresia — trate-os com o mesmo cuidado que trataria os documentos físicos. Lembre-se que os dados inseridos por um usuário ficam salvos **somente no navegador dele** (não há vazamento entre usuários), mas o risco está em usar a demonstração pública com dados verídicos. Para uso em produção com dados reais, aguarde a migração para Supabase com autenticação, regras de acesso e, idealmente, criptografia adequadas para os campos de documento.
+Este projeto começou como um MVP local e demonstrativo, e já conta com login real (Supabase Auth). Ainda assim, **não cadastre dados pessoais sensíveis reais** (nomes completos, telefones, endereços, **RG e CPF** de jovens e famílias reais) enquanto: (a) o modo IndexedDB estiver em uso — os dados ficam só no navegador de quem cadastrou, sem sincronizar entre dispositivos; ou (b) as políticas de RLS do Supabase ainda estiverem na Opção A/B (liberadas para `anon`) — veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento). O cadastro de Jovens inclui campos de documento (RG, CPF) para espelhar a ficha física de membresia — trate-os com o mesmo cuidado que trataria os documentos físicos. Para uso com dados reais: use o Supabase como fonte de dados, com as políticas de RLS na Opção C (exigindo login) e, idealmente, criptografia adequada para os campos de documento.
