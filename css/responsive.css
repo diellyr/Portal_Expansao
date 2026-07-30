@@ -14,10 +14,6 @@
   #logout-btn-label { display: none; }
 }
 
-@media (max-width: 480px) {
-  .topbar-user { display: none; }
-}
-
 @media (min-width: 641px) {
   .filter-actions .btn { width: auto; }
 }
