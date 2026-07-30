@@ -9,6 +9,19 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.6.2] — 2026-07-30
+
+### Corrigido
+- O seletor de idioma, em alguns navegadores (principalmente no celular),
+  continuava mostrando visualmente o idioma antigo depois de escolher um
+  novo — mesmo com a troca já salva e aplicada internamente — porque o
+  navegador restaura o valor anterior de campos `<select>` após um recarregamento
+  de página (`location.reload()`), sobrepondo o valor que o app tentou marcar
+  como selecionado. Corrigido com `autocomplete="off"` no campo.
+- O título da página (ex.: "Congregações"/"Dashboard") na barra superior
+  não acompanhava a troca de idioma, ficando sempre em português — agora
+  usa a mesma tradução do item de menu correspondente.
+
 ## [1.6.1] — 2026-07-30
 
 ### Corrigido

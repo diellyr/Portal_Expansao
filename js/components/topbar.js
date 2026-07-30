@@ -115,6 +115,10 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
       class: "form-control lang-select",
       id: "lang-select",
       "aria-label": t("topbar.lang.aria"),
+      // Some mobile browsers restore a <select>'s previous value across a
+      // location.reload() (form-state restoration), overriding the option
+      // this render marks as selected -- autocomplete="off" opts out of that.
+      autocomplete: "off",
     },
     [
       el("option", { value: "pt", selected: currentLang === "pt" ? true : undefined }, "Português"),
