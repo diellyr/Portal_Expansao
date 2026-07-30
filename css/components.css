@@ -167,6 +167,8 @@ textarea.form-control { height: auto; padding: var(--space-2) var(--space-3); mi
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--space-4); }
 .form-group label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
 .form-group .required::after { content: " *"; color: var(--color-danger); }
+/* [hidden] must win over the display:flex rule above regardless of source order */
+.form-group[hidden] { display: none; }
 .form-error { font-size: var(--font-size-xs); color: var(--color-danger); }
 .form-hint { font-size: var(--font-size-xs); color: var(--color-text-muted); }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 var(--space-4); }

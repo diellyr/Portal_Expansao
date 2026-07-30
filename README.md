@@ -22,6 +22,7 @@ Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado c
 - [Executar localmente](#executar-localmente)
 - [Publicar no GitHub Pages](#publicar-no-github-pages)
 - [Autenticação](#autenticação)
+- [Perfis e permissões (RBAC)](#perfis-e-permissões-rbac)
 - [Banco de dados local (IndexedDB)](#banco-de-dados-local-indexeddb)
 - [Filtros globais](#filtros-globais)
 - [Dashboard](#dashboard)
@@ -161,6 +162,210 @@ O login usa **Supabase Auth** de verdade — não há e-mail/senha fixos no cód
 - **Login exige o Supabase configurado**: como a autenticação depende do Supabase, é necessário ter a URL e a chave anon preenchidas (veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento)) antes de conseguir entrar — sem isso, a tela mostra um erro claro em vez de travar.
 - Como a tela de Administração (onde essas credenciais são configuradas) fica **atrás do login**, um dispositivo novo só consegue entrar se a URL/chave já estiverem em `js/config/supabase-config.js` (ou seja, para acessar de vários dispositivos, esse arquivo precisa estar preenchido — não basta salvar pelo formulário em um navegador só).
 - As políticas de RLS das tabelas devem estar liberadas para o papel `authenticated` (não mais para `anon`) — veja o SQL na seção de Supabase.
+- Além de autenticar, cada login tem um **perfil** (papel + cidade, quando aplicável) que define o que a pessoa pode ver e editar — veja [Perfis e permissões (RBAC)](#perfis-e-permissões-rbac).
+
+## Perfis e permissões (RBAC)
+
+> Só existe controle de permissões por papel (RBAC) **com o Supabase ativo**. No modo IndexedDB (sem Supabase configurado), não há conceito de múltiplos usuários — quem consegue entrar tem acesso total, como sempre funcionou.
+
+### Papéis disponíveis
+
+| Perfil | Abrangência | Cidades/Congregações/Jovens | Eventos |
+|---|---|---|---|
+| **Administrador** | Tudo | Cria, edita e exclui em todas as cidades | Cria, edita e exclui em todas as cidades |
+| **Líder Simplifique Regional** | Todas as cidades | Cria, edita e exclui em todas as cidades | Cria, edita e exclui em todas as cidades |
+| **Conselheiro Regional** | Todas as cidades | Mesmo acesso do Líder Simplifique Regional (nome diferente) | Mesmo acesso do Líder Simplifique Regional |
+| **Líder Simplifique** | Uma cidade (escolhida ao criar o usuário) | Cria, edita e exclui **apenas na própria cidade** | Cria, edita e exclui **apenas eventos da própria cidade**, mas **vê eventos de todas as cidades** |
+| **Conselheiro** | Uma cidade | Mesmo acesso do Líder Simplifique (nome diferente) | Mesmo acesso do Líder Simplifique |
+| **Convidado Regional** | Todas as cidades | Somente leitura | Somente leitura, todas as cidades |
+| **Convidado Local** | Uma cidade | Somente leitura, apenas da própria cidade | Somente leitura, apenas da própria cidade (sem exceção — diferente do Líder Simplifique/Conselheiro) |
+
+Regras gerais:
+
+- Toda criação de usuário exige escolher um **perfil**; os quatro perfis "de cidade" (Líder Simplifique, Conselheiro, Convidado Local) também exigem escolher a **cidade**. Os três perfis "regionais" (Administrador, Líder Simplifique Regional, Conselheiro Regional, Convidado Regional) não precisam de cidade, pois já acessam tudo.
+- **Somente o usuário Administrador** enxerga e acessa as páginas **Administração** e **Usuários** — os outros seis perfis nem veem esses itens no menu, e o próprio banco (RLS) bloqueia o acesso caso alguém tente chamar a API diretamente.
+- A aplicação aplica essas regras tanto na interface (menu/redirecionamento) quanto no banco (políticas de RLS abaixo) — a proteção real está no banco, já que a interface sozinha pode ser contornada por quem tiver a chave anon.
+
+### Módulo "Usuários"
+
+Página própria (`pages/usuarios.html`), separada de Administração, visível apenas para o Administrador. Nela é possível:
+
+- Listar os usuários cadastrados (e-mail, perfil, cidade e data de criação).
+- Criar um novo usuário informando e-mail, uma senha temporária, o perfil e (quando exigido) a cidade.
+- Editar o perfil/cidade de um usuário existente.
+- Remover o acesso de um usuário (apaga o vínculo de perfil — a pessoa perde acesso aos dados imediatamente — mas **não** apaga a conta de login do Supabase Auth).
+
+**Como funciona a criação de usuário por trás dos panos:** este app é 100% estático (sem servidor próprio), então criar contas de login novas só pode ser feito com a chave **anon** — a mesma que o app já usa para tudo. A chave especial que o Supabase usa para criar/gerenciar contas com privilégios administrativos (`service_role`) **nunca pode** ficar em código que roda no navegador (qualquer visitante do site conseguiria lê-la e teria acesso total ao banco). Por isso, o fluxo de criação é:
+
+1. O botão "Novo usuário" chama `auth.signUp()` — a mesma função que qualquer pessoa usaria para se auto-cadastrar — só que com um **cliente Supabase isolado**, criado só para essa chamada e configurado para **não** guardar sessão (`persistSession: false`). Isso evita um efeito colateral do `signUp()`: por padrão, ele troca a sessão ativa do navegador para a do usuário recém-criado — o que derrubaria o login do Administrador que está cadastrando. Com o cliente isolado, a sessão do Administrador continua intacta.
+2. Depois que a conta é criada no Supabase Auth, o app grava uma linha na tabela `user_profiles` (usando o cliente normal, autenticado como Administrador) com o perfil e a cidade escolhidos.
+3. No próximo login dessa pessoa, o app lê essa linha para saber o que ela pode fazer.
+
+Limitações herdadas dessa abordagem (inerentes a um app sem backend, não é algo que dá para "consertar" no código):
+
+- Por padrão, o Supabase pode exigir confirmação por e-mail para novas contas — se isso estiver ativo, a pessoa só consegue entrar depois de confirmar o e-mail recebido (ajustável em **Authentication → Providers → Email** no painel do Supabase).
+- **Excluir de vez** uma conta do Supabase Auth (não só o acesso ao app) ou **forçar a troca de senha** de outra pessoa só é possível pelo painel do Supabase (**Authentication → Users**), nunca por este app.
+- Toda criação de usuário usa a chave anon, então ela é sujeita às mesmas políticas de RLS de qualquer outra operação — é por isso que a tabela `user_profiles` (abaixo) tem suas próprias políticas restringindo quem pode inserir/editar linhas nela.
+
+### SQL: tabela de perfis e políticas de RLS por papel
+
+Rode este script **depois** de já ter as 6 tabelas da seção [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento) e a autenticação configurada. Ele substitui as políticas simples "libera tudo para authenticated" (Opção C) por políticas que checam o papel e a cidade de cada usuário.
+
+```sql
+-- ================================
+-- TABELA DE PERFIS (papel + cidade de cada login)
+-- ================================
+create table user_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  role text not null check (role in (
+    'admin',
+    'lider_simplifique_regional',
+    'conselheiro_regional',
+    'lider_simplifique',
+    'conselheiro',
+    'convidado_regional',
+    'convidado_local'
+  )),
+  cidade_id uuid references cities(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+alter table user_profiles enable row level security;
+
+-- Funções auxiliares (security definer: leem user_profiles ignorando RLS,
+-- o que evita recursão infinita nas políticas que as usam)
+create or replace function public.current_user_role() returns text
+language sql security definer stable as $$
+  select role from public.user_profiles where user_id = auth.uid();
+$$;
+
+create or replace function public.current_user_cidade_id() returns uuid
+language sql security definer stable as $$
+  select cidade_id from public.user_profiles where user_id = auth.uid();
+$$;
+
+create or replace function public.is_admin() returns boolean
+language sql security definer stable as $$
+  select public.current_user_role() = 'admin';
+$$;
+
+create or replace function public.is_regional() returns boolean
+language sql security definer stable as $$
+  select public.current_user_role() in ('admin', 'lider_simplifique_regional', 'conselheiro_regional');
+$$;
+
+create or replace function public.is_city_editor() returns boolean
+language sql security definer stable as $$
+  select public.current_user_role() in ('lider_simplifique', 'conselheiro');
+$$;
+
+-- Cada usuário lê o próprio perfil (necessário para o app saber seu papel);
+-- só o Administrador lê/cria/edita/remove os perfis de todo mundo.
+create policy "user_profiles select" on user_profiles for select to authenticated
+  using (user_id = auth.uid() or public.is_admin());
+create policy "user_profiles insert (admin)" on user_profiles for insert to authenticated
+  with check (public.is_admin());
+create policy "user_profiles update (admin)" on user_profiles for update to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+create policy "user_profiles delete (admin)" on user_profiles for delete to authenticated
+  using (public.is_admin());
+
+-- Cria o perfil do Administrador para a conta já existente
+-- (troque o e-mail abaixo se a sua conta admin usar outro)
+insert into user_profiles (user_id, email, role, cidade_id)
+select id, email, 'admin', null from auth.users where email = 'admin@portalexpansao.local'
+on conflict (user_id) do update set role = 'admin';
+
+-- ================================
+-- CIDADES: leitura por todo mundo dentro do escopo; escrita restrita
+-- ================================
+drop policy if exists "allow authenticated all" on cities;
+drop policy if exists "allow anon all" on cities;
+
+create policy "cities select" on cities for select to authenticated
+  using (
+    public.is_regional()
+    or public.current_user_role() = 'convidado_regional'
+    or id = public.current_user_cidade_id()
+  );
+create policy "cities insert (regional)" on cities for insert to authenticated
+  with check (public.is_regional());
+create policy "cities update" on cities for update to authenticated
+  using (public.is_regional() or (public.is_city_editor() and id = public.current_user_cidade_id()))
+  with check (public.is_regional() or (public.is_city_editor() and id = public.current_user_cidade_id()));
+create policy "cities delete (regional)" on cities for delete to authenticated
+  using (public.is_regional());
+
+-- ================================
+-- CONGREGAÇÕES: mesmo padrão de cidades, usando a coluna cidade_id
+-- ================================
+drop policy if exists "allow authenticated all" on congregations;
+drop policy if exists "allow anon all" on congregations;
+
+create policy "congregations select" on congregations for select to authenticated
+  using (
+    public.is_regional()
+    or public.current_user_role() = 'convidado_regional'
+    or cidade_id = public.current_user_cidade_id()
+  );
+create policy "congregations write" on congregations for all to authenticated
+  using (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()))
+  with check (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()));
+
+-- ================================
+-- JOVENS: mesmo padrão de congregações
+-- ================================
+drop policy if exists "allow authenticated all" on youth;
+drop policy if exists "allow anon all" on youth;
+
+create policy "youth select" on youth for select to authenticated
+  using (
+    public.is_regional()
+    or public.current_user_role() = 'convidado_regional'
+    or cidade_id = public.current_user_cidade_id()
+  );
+create policy "youth write" on youth for all to authenticated
+  using (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()))
+  with check (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()));
+
+-- ================================
+-- EVENTOS: exceção — Líder Simplifique/Conselheiro veem tudo, mas só
+-- criam/editam/excluem eventos da própria cidade
+-- ================================
+drop policy if exists "allow authenticated all" on events;
+drop policy if exists "allow anon all" on events;
+
+create policy "events select" on events for select to authenticated
+  using (
+    public.is_regional()
+    or public.is_city_editor()
+    or public.current_user_role() = 'convidado_regional'
+    or (public.current_user_role() = 'convidado_local' and cidade_id = public.current_user_cidade_id())
+  );
+create policy "events insert" on events for insert to authenticated
+  with check (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()));
+create policy "events update" on events for update to authenticated
+  using (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()))
+  with check (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()));
+create policy "events delete" on events for delete to authenticated
+  using (public.is_regional() or (public.is_city_editor() and cidade_id = public.current_user_cidade_id()));
+
+-- ================================
+-- IMPORTAÇÃO E CONFIGURAÇÕES: só o Administrador (só ele acessa Administração)
+-- ================================
+drop policy if exists "allow authenticated all" on import_history;
+drop policy if exists "allow anon all" on import_history;
+create policy "import_history admin only" on import_history for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "allow authenticated all" on settings;
+drop policy if exists "allow anon all" on settings;
+create policy "settings admin only" on settings for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+```
+
+> Depois de rodar esse script, use o módulo **Usuários** (só o Administrador vê) para cadastrar as demais pessoas com o perfil e a cidade corretos — sem uma linha em `user_profiles`, um login autenticado não enxerga nenhum dado (as políticas acima não encontram papel algum para ele).
 
 ## Banco de dados local (IndexedDB)
 
@@ -228,7 +433,7 @@ Disponível em Administração, com exclusões granulares (somente jovens, somen
 ## Limitações do MVP
 
 - Não há sincronização entre dispositivos ou usuários — os dados são exclusivos do navegador local.
-- A autenticação é apenas demonstrativa, sem controle de permissões ou papéis de usuário.
+- Controle de permissões por papel (RBAC) só existe com o Supabase ativo — veja [Perfis e permissões (RBAC)](#perfis-e-permissões-rbac); no modo IndexedDB, quem entra tem acesso total.
 - Não há histórico de alterações (auditoria) além de `createdAt`/`updatedAt`.
 - A exclusão de uma cidade ou congregação pelo formulário de cadastro **não** remove em cascata os registros vinculados (para isso, use a Zona de Perigo → "Apagar dados de uma cidade").
 - Volumes muito grandes de dados podem impactar a performance do IndexedDB no navegador, já que todo o processamento acontece no cliente.

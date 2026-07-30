@@ -1,4 +1,5 @@
 import { isAuthenticated } from "./services/auth-service.js";
+import { getCurrentUserProfile, isAdminProfile } from "./services/user-profile-service.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { renderTopbar } from "./components/topbar.js";
 import { refreshIcons } from "./utils/dom-utils.js";
@@ -14,7 +15,14 @@ export async function bootstrapPage({ activeKey, title, breadcrumbs }) {
     return false;
   }
 
-  renderSidebar(document.getElementById("sidebar"), activeKey);
+  let isAdmin = false;
+  try {
+    isAdmin = isAdminProfile(await getCurrentUserProfile());
+  } catch (err) {
+    console.error("Falha ao carregar perfil do usuário:", err);
+  }
+
+  renderSidebar(document.getElementById("sidebar"), activeKey, isAdmin);
   renderTopbar(document.getElementById("topbar"), { title, breadcrumbs });
   refreshIcons();
 

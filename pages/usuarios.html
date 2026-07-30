@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuários — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header row-between">
+          <div>
+            <h2 class="page-header-title">Usuários</h2>
+            <p class="page-header-subtitle">Crie contas de acesso e defina o que cada pessoa pode ver e editar.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="new-user-btn">
+            <i data-lucide="user-plus" class="icon icon-sm"></i> Novo usuário
+          </button>
+        </div>
+
+        <div id="usuarios-indexeddb-notice" hidden>
+          <div class="alert alert-info">
+            <i data-lucide="info" class="icon icon-sm"></i>
+            <span>Gestão de usuários exige o Supabase como fonte de dados ativa. Ative-o em Administração → Fonte de dados para usar esta página.</span>
+          </div>
+        </div>
+
+        <div id="usuarios-content">
+          <div id="users-table"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="../js/pages/usuarios.js"></script>
+</body>
+</html>

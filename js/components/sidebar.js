@@ -2,7 +2,7 @@ import { el, refreshIcons } from "../utils/dom-utils.js";
 import { NAV_ITEMS, APP_NAME, APP_VERSION } from "../config/constants.js";
 import { t } from "../services/i18n-service.js";
 
-export function renderSidebar(container, activeKey) {
+export function renderSidebar(container, activeKey, isAdmin = false) {
   container.innerHTML = "";
 
   const subtitle = t("app.subtitle");
@@ -18,7 +18,7 @@ export function renderSidebar(container, activeKey) {
   const nav = el(
     "nav",
     { class: "sidebar-nav", "aria-label": "Navegação principal" },
-    NAV_ITEMS.map((item) =>
+    NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map((item) =>
       el("a", { href: item.href, class: `sidebar-link${item.key === activeKey ? " active" : ""}`, "aria-current": item.key === activeKey ? "page" : undefined }, [
         el("i", { "data-lucide": item.icon, class: "icon" }),
         el("span", {}, t(`nav.${item.key}`)),
