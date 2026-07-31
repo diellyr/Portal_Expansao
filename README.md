@@ -22,6 +22,7 @@ Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado c
 - [Objetivo](#objetivo)
 - [Funcionalidades](#funcionalidades)
 - [Módulos de análise e produtividade (v1.11.0)](#módulos-de-análise-e-produtividade-v1110)
+- [Estratégia AI (v1.12.0)](#estratégia-ai-v1120)
 - [Tecnologias](#tecnologias)
 - [Arquitetura](#arquitetura)
 - [Estrutura de arquivos](#estrutura-de-arquivos)
@@ -104,6 +105,96 @@ cada papel pode ler).
   jovens vistos recentemente (guarda só id+nome, nunca telefone/data/endereço), itens por
   página em Jovens e um botão para limpar tudo. Fica só no navegador local (`localStorage`)
   e nunca acompanha o usuário para outro dispositivo.
+
+## Estratégia AI (v1.12.0)
+
+Módulo (`pages/estrategia-ai.html`) que usa inteligência artificial para explicar
+indicadores, apontar situações que merecem atenção e sugerir ações práticas com base
+nos dados reais já existentes no sistema — **nenhuma tabela, coluna, view, function,
+trigger, policy de RLS, bucket, relacionamento, índice ou migração foi criada ou
+alterada no Supabase** para construir este módulo. Fica disponível no menu para
+administradores e para os papéis `lider_simplifique_regional`,
+`conselheiro_regional`, `lider_simplifique` e `conselheiro` (mesma lista de papéis do
+módulo Backup & Exportação).
+
+### O que a IA pode e não pode fazer
+
+A IA nunca consulta o banco livremente: ela só pode escolher entre **11 funções
+internas fixas** (`js/services/ai/context-functions.js` — resumo regional,
+comparação entre cidades, qualidade dos cadastros, aniversariantes, jovens sem
+conselheiro, cobertura ministerial, distribuição por faixa etária, músicos
+disponíveis, cadastros incompletos, distribuição por congregação, escopo do usuário
+atual), cada uma delas reaproveitando os mesmos serviços que as demais páginas já
+usam — então o RLS/escopo por cidade que já existe para o papel do usuário continua
+valendo automaticamente. A IA nunca gera SQL, nunca escreve/altera/apaga registros e
+nunca vê mais dados do que o usuário logado já pode ver. Por padrão, o **modo
+"Privacidade reforçada"** (ativado por padrão) remove nomes, telefone, endereço,
+datas de nascimento completas e demais dados pessoais antes de qualquer envio —
+apenas quantidades, percentuais, faixa etária, cidade/congregação (por id) e
+indicadores agregados são enviados; nomes só aparecem nas poucas funcionalidades que
+genuinamente precisam de uma lista de contatos (e mesmo assim sem telefone/
+endereço/pais/observações).
+
+Sete das treze "Ações rápidas" (Qualidade dos dados, Padrões incomuns, Distribuir
+responsabilidades, Planejar acompanhamento, Cobertura ministerial, Simular cenário e
+Histórico de evolução) são **totalmente determinísticas — funcionam mesmo sem
+nenhum provedor de IA configurado**, porque os cálculos são feitos em JavaScript
+puro (`js/services/ai/anomaly-detection-service.js`,
+`scenario-simulator-service.js`, `evolution-service.js`); a IA, quando configurada,
+só é usada para explicar/interpretar esses números em texto, nunca para calculá-los.
+As demais (resumo executivo, recomendações, planejar evento, gerar pauta, prestação
+de contas, criar comunicação) exigem um provedor configurado e mostram a mensagem
+"Configure um provedor de inteligência artificial para utilizar as análises
+estratégicas." caso contrário.
+
+### Configuração de provedores
+
+A tela de Configuração (só para administradores) suporta 18 provedores organizados
+em APIs diretas, agregadores/gateways, plataformas corporativas, modelos locais e
+personalizado — cada um com seu próprio adaptador isolado em
+`js/services/ai/providers/` (nenhum `if`/`switch` de provedor espalhado pela
+interface). Existem duas formas de configurar uma chave:
+
+- **Temporária/teste**: a chave é digitada na própria tela e fica **apenas na
+  memória da aba** (`js/services/ai/session-config-store.js`) — nunca é gravada em
+  `localStorage`/`sessionStorage`/cookie, nunca aparece em outro dispositivo e se
+  perde ao atualizar/fechar a página. A UI avisa isso explicitamente ao lado do
+  campo.
+- **Produção (recomendada)**: como este projeto é um site estático (sem servidor
+  Node próprio), a chamada para as APIs pagas passa por uma _Supabase Edge
+  Function_ (`supabase/functions/ai-strategy-proxy`) — a única peça de "backend"
+  deste módulo, e que não altera nada no banco de dados. Nesse modo o
+  administrador configura a chave como **variável de ambiente/secret da Edge
+  Function** (nunca no navegador); a tela só mostra se o provedor está
+  configurado, sem nunca receber a chave completa.
+
+  Para habilitar o modo produção: `supabase functions deploy ai-strategy-proxy` no
+  projeto Supabase já configurado (veja [Integração com Supabase](#integração-com-
+  supabase-modo-desenvolvimento)) e cadastre os secrets desejados (ex.:
+  `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` — nomes exatos em `PROVIDER_ENV` dentro do
+  próprio arquivo da function). **Esta function não é implantada automaticamente
+  por este projeto** — implantar infraestrutura em um ambiente real é uma ação que
+  precisa ser decidida e executada deliberadamente pela administração.
+
+Provedores locais (Ollama, LM Studio) são chamados diretamente do navegador para
+`http://localhost`, sem passar pela Edge Function, já que não há segredo a
+proteger nem como um relay remoto alcançaria uma máquina local.
+
+### Limitações conhecidas
+
+- O sistema não guarda um histórico de completude, conselheiro ou cobertura ao
+  longo do tempo — apenas a "fotografia" atual. O "Histórico de evolução" mostra a
+  evolução real de cadastros por mês (baseada em `createdAt`/`dataEntrada`/
+  `dataBatismoAguas`, dados que realmente existem) e permite importar um arquivo
+  CSV/XLSX/JSON de um export antigo para uma comparação pontual — processado
+  inteiramente no navegador, nunca salvo, nunca enviado à IA antes de o
+  administrador ver o resultado.
+- O adaptador do Manus foi implementado seguindo o padrão documentado de
+  enviar→consultar→receber resultado (tarefas assíncronas), mas os nomes exatos de
+  endpoint/payload devem ser conferidos na documentação vigente do Manus antes de
+  uso em produção.
+- Preços por provedor não são fixos no código (mudam com frequência) — o custo só
+  é mostrado quando a própria API informa esse dado.
 
 ## Tecnologias
 
