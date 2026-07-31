@@ -110,6 +110,7 @@ export const NAV_ITEMS = [
   { href: "relatorios.html", icon: "bar-chart-3", label: "Relatórios", key: "relatorios" },
   { href: "qualidade.html", icon: "shield-check", label: "Qualidade dos Cadastros", key: "qualidade" },
   { href: "listas.html", icon: "clipboard-list", label: "Gerador de Listas", key: "listas" },
+  { href: "comparador.html", icon: "git-compare", label: "Comparador de Cidades", key: "comparador" },
   {
     href: "backup.html",
     icon: "database-backup",
