@@ -216,7 +216,7 @@ Regras gerais:
 
 - Toda criação de usuário exige escolher um **perfil**; os quatro perfis "de cidade" (Líder Simplifique, Conselheiro, Convidado Local) também exigem escolher a **cidade**. Os três perfis "regionais" (Administrador, Líder Simplifique Regional, Conselheiro Regional, Convidado Regional) não precisam de cidade, pois já acessam tudo.
 - **Somente o usuário Administrador** enxerga e acessa as páginas **Administração** e **Usuários** — os outros seis perfis nem veem esses itens no menu, e o próprio banco (RLS) bloqueia o acesso caso alguém tente chamar a API diretamente.
-- **Exceção**: o módulo **Backup** (veja abaixo) é visível para Líder Simplifique Regional, Conselheiro Regional, Líder Simplifique e Conselheiro, além do Administrador — os dois perfis "Convidado" continuam sem acesso a ele.
+- **Exceção**: o módulo **Backup & Exportação** (veja abaixo) é visível para Líder Simplifique Regional, Conselheiro Regional, Líder Simplifique e Conselheiro, além do Administrador — os dois perfis "Convidado" continuam sem acesso a ele.
 - A aplicação aplica essas regras tanto na interface (menu/redirecionamento) quanto no banco (políticas de RLS abaixo) — a proteção real está no banco, já que a interface sozinha pode ser contornada por quem tiver a chave anon.
 
 ### Módulo "Usuários"
@@ -400,16 +400,19 @@ create policy "settings admin only" on settings for all to authenticated
 
 > Depois de rodar esse script, use o módulo **Usuários** (só o Administrador vê) para cadastrar as demais pessoas com o perfil e a cidade corretos — sem uma linha em `user_profiles`, um login autenticado não enxerga nenhum dado (as políticas acima não encontram papel algum para ele).
 
-### Módulo "Backup"
+### Módulo "Backup & Exportação"
 
-Página própria (`pages/backup.html`), com um único botão, **"Backup total"**, visível para Administrador, Líder Simplifique Regional, Conselheiro Regional, Líder Simplifique e Conselheiro (os dois perfis "Convidado" não têm acesso). Sempre lê direto do Supabase, independentemente da chave seletora de fonte de dados — a mesma lógica do botão "Baixar backup do Supabase" em Administração (`BackupService.exportBackupTotal()`), reaproveitando o código.
+Página própria (`pages/backup.html`), visível para Administrador, Líder Simplifique Regional, Conselheiro Regional, Líder Simplifique e Conselheiro (os dois perfis "Convidado" não têm acesso). Sempre lê direto do Supabase, independentemente da chave seletora de fonte de dados. Tem dois botões, ambos sobre os mesmos dados:
 
-O que muda é o **alcance**, decidido pelo papel de quem está logado:
+- **"Backup total"**: gera um `.json` (`portal-expansao-backup-total-YYYY-MM-DD.json`) — mesma lógica do botão "Baixar backup do Supabase" em Administração (`BackupService.exportBackupTotal()`), reaproveitando o código. Serve para restaurar os dados depois (via "Restaurar backup" em Administração).
+- **"Exportar tudo (Excel)"**: gera um `.xlsx` (`portal-expansao-backup-total-YYYY-MM-DD.xlsx`, `BackupService.exportBackupTotalExcel()`) com uma aba por tabela — **Cidades**, **Congregações**, **Jovens** e **Eventos** — pensado para abrir/conferir no Excel, não para restaurar diretamente (não existe hoje uma função de "restaurar a partir do Excel").
 
-- **Líder Simplifique Regional / Conselheiro Regional**: backup de todas as cidades (mesmo alcance do backup feito pelo Administrador).
-- **Líder Simplifique / Conselheiro**: backup **apenas da própria cidade**. Cidades, congregações e jovens já vêm filtrados pelo próprio banco (as políticas de RLS acima só devolvem os registros da cidade da pessoa para esses papéis). A exceção é a tabela de eventos — como as políticas de RLS deliberadamente deixam esses dois papéis **lerem** eventos de todas as cidades (para saberem o que acontece na região), o app filtra os eventos por cidade no próprio código antes de gerar o arquivo, garantindo que o backup fique realmente restrito à cidade da pessoa.
+O que muda entre os dois é só o **formato**; o **alcance** dos dados é sempre o mesmo, decidido pelo papel de quem está logado, e essa regra fica explícita na tela, escrita logo abaixo dos botões:
 
-O nome do arquivo é sempre `portal-expansao-backup-total-YYYY-MM-DD.json`, com um campo `scope` (`"full"` ou `"city"`) indicando o alcance daquele backup específico.
+- **Líder Simplifique Regional / Conselheiro Regional**: alcance de todas as cidades (mesmo alcance do backup feito pelo Administrador).
+- **Líder Simplifique / Conselheiro**: alcance **apenas da própria cidade**. Cidades, congregações e jovens já vêm filtrados pelo próprio banco (as políticas de RLS acima só devolvem os registros da cidade da pessoa para esses papéis). A exceção é a tabela de eventos — como as políticas de RLS deliberadamente deixam esses dois papéis **lerem** eventos de todas as cidades (para saberem o que acontece na região), o app filtra os eventos por cidade no próprio código antes de gerar qualquer um dos dois arquivos, garantindo que o alcance fique realmente restrito à cidade da pessoa nos dois formatos.
+
+O `.json` do "Backup total" também tem um campo `scope` (`"full"` ou `"city"`) indicando o alcance daquele backup específico.
 
 ## Banco de dados local (IndexedDB)
 

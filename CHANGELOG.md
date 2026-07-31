@@ -9,6 +9,28 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.10.0] — 2026-07-31
+
+### Adicionado
+- Botão **"Exportar tudo (Excel)"** no módulo de backup, ao lado do "Backup
+  total": gera um `.xlsx` com uma aba por tabela (Cidades, Congregações,
+  Jovens, Eventos), seguindo o mesmo alcance por perfil do "Backup total"
+  (`BackupService.exportBackupTotalExcel()`).
+- Regra de alcance por perfil agora explicada por escrito na própria tela,
+  logo abaixo dos botões (ex.: "Seu perfil (Líder Simplifique) tem acesso
+  apenas à cidade Cidade Um...").
+
+### Alterado
+- Módulo **"Backup"** renomeado para **"Backup & Exportação"** (menu,
+  título da página e título da aba do navegador).
+
+### Corrigido
+- Exportações de Jovens em CSV e Excel (Jovens, Relatórios e o novo
+  "Exportar tudo") não incluíam **Nome do pai** e **Nome da mãe**, mesmo
+  esses campos existindo no cadastro e sendo aceitos na importação — uma
+  planilha exportada e depois reimportada perdia essa informação
+  silenciosamente. Corrigido nos três lugares.
+
 ## [1.9.0] — 2026-07-31
 
 ### Adicionado
