@@ -4,7 +4,7 @@
   <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Backup — Portal Expansão</title>
+  <title>Backup & Exportação — Portal Expansão</title>
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/global.css" />
   <link rel="stylesheet" href="../css/layout.css" />
@@ -19,28 +19,34 @@
       <header class="topbar" id="topbar"></header>
       <main class="main-content" id="main-content">
         <div class="page-header">
-          <h2 class="page-header-title">Backup</h2>
+          <h2 class="page-header-title">Backup & Exportação</h2>
           <p class="page-header-subtitle" id="backup-subtitle">Baixe uma cópia dos dados do Supabase.</p>
         </div>
 
         <div id="backup-not-configured-notice" hidden>
           <div class="alert alert-info">
             <i data-lucide="info" class="icon icon-sm"></i>
-            <span>O backup total lê direto do Supabase — configure a URL e a chave anon em Administração → Fonte de dados para usar esta página.</span>
+            <span>Esta página lê direto do Supabase — configure a URL e a chave anon em Administração → Fonte de dados para usar esta página.</span>
           </div>
         </div>
 
         <div id="backup-content" class="surface" style="padding: var(--space-5);">
-          <p class="text-muted" id="backup-scope-desc" style="margin-top:0;"></p>
-          <button type="button" class="btn btn-primary" id="backup-total-btn">
-            <i data-lucide="database-backup" class="icon icon-sm"></i> Backup total
-          </button>
+          <div class="row-wrap gap-2">
+            <button type="button" class="btn btn-primary" id="backup-total-btn">
+              <i data-lucide="database-backup" class="icon icon-sm"></i> Backup total
+            </button>
+            <button type="button" class="btn btn-secondary" id="export-excel-btn">
+              <i data-lucide="file-spreadsheet" class="icon icon-sm"></i> Exportar tudo (Excel)
+            </button>
+          </div>
+          <p class="text-muted" id="backup-scope-desc" style="margin: var(--space-3) 0 0;"></p>
         </div>
       </main>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="module" src="../js/pages/backup.js"></script>
 </body>
 </html>

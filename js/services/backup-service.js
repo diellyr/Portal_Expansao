@@ -12,7 +12,7 @@ import { generateDemoData } from "../database/seed.js";
 import { toCSV } from "../parsers/csv-parser.js";
 import { downloadJSON, downloadCSV } from "../utils/file-utils.js";
 import { formatBoolean } from "../utils/formatters.js";
-import { YOUTH_STATUS_LABELS, SEXO_LABELS } from "../config/constants.js";
+import { YOUTH_STATUS_LABELS, SEXO_LABELS, EVENT_TYPE_LABELS } from "../config/constants.js";
 
 export const BACKUP_VERSION = 1;
 
@@ -37,6 +37,53 @@ async function fetchSupabaseBackupTables() {
     supabaseDb.getAll("user_profiles").catch(() => []),
   ]);
   return { cities, congregations, youth, events, importHistory, settingsRows, userProfiles };
+}
+
+function youthToExcelRow(y, cityMap, congMap) {
+  return {
+    Código: y.codigo || "",
+    Nome: y.nome,
+    "Data de Nascimento": y.dataNascimento || "",
+    Naturalidade: y.naturalidade || "",
+    Sexo: SEXO_LABELS[y.sexo] || "",
+    Telefone: y.telefone || "",
+    Celular: y.celular || "",
+    Endereço: y.endereco || "",
+    Número: y.numero || "",
+    Bairro: y.bairro || "",
+    CEP: y.cep || "",
+    Cidade: cityMap[y.cidadeId] || "",
+    Congregação: congMap[y.congregacaoId] || "",
+    Status: YOUTH_STATUS_LABELS[y.status] || y.status,
+    RG: y.rg || "",
+    "Órgão Emissor": y.orgaoEmissor || "",
+    CPF: y.cpf || "",
+    Escolaridade: y.escolaridade || "",
+    Profissão: y.profissao || "",
+    Cargo: y.cargo || "",
+    "Estado Civil": y.estadoCivil || "",
+    "Outro (qual)?": y.outroEstadoCivil || "",
+    Cônjuge: y.conjuge || "",
+    "Nome do Pai": y.nomePai || "",
+    "Nome da Mãe": y.nomeMae || "",
+    Pastor: y.pastor || "",
+    "Conselheiro Local": y.conselheiroLocal || "",
+    "Conselheiro da Cidade": y.conselheiroCidade || "",
+    "Batismo nas Águas": y.dataBatismoAguas || "",
+    "Batizado no Espírito Santo": formatBoolean(y.batizadoEspiritoSanto),
+    Instrumento: y.instrumento || "",
+    Prega: formatBoolean(y.prega),
+    Canta: formatBoolean(y.canta),
+    "Outros Talentos": y.outrosTalentos || "",
+    Qtd: y.qtd || "",
+    "Líder de Expansão?": formatBoolean(y.liderExpansao),
+    "Se líder, qual?": y.seLider || "",
+    "Qual Departamento?": y.qualDepartamento || "",
+    "Nome do Dirigente": y.nomeDirigente || "",
+    "Cadastro Recebido Por": y.recebidoPor || "",
+    "Tipo de Admissão": y.tipoAdmissao || "",
+    Observações: y.observacoes || "",
+  };
 }
 
 export const BackupService = {
@@ -117,6 +164,69 @@ export const BackupService = {
     return backup;
   },
 
+  /**
+   * "Exportar tudo (Excel)" in the Backup & Exportação module -- same data
+   * and same per-role scoping rules as exportBackupTotal(), just as a
+   * human-readable .xlsx workbook (one sheet per entity) instead of a
+   * machine-oriented JSON file.
+   */
+  async exportBackupTotalExcel(profile) {
+    if (!window.XLSX) throw new Error("Biblioteca SheetJS não carregada.");
+    if (!isSupabaseConfigured()) {
+      throw new Error("Supabase não está configurado. Preencha a URL e a chave anon em Administração → Fonte de dados.");
+    }
+    const { cities, congregations, youth, events } = await fetchSupabaseBackupTables();
+    const isCityScoped = CITY_SCOPED_ROLES.includes(profile?.role);
+    const scopedEvents = isCityScoped ? events.filter((e) => e.cidadeId === profile.cidadeId) : events;
+
+    const cityMap = Object.fromEntries(cities.map((c) => [c.id, c.nome]));
+    const congMap = Object.fromEntries(congregations.map((c) => [c.id, c.nome]));
+
+    const citiesRows = cities.map((c) => ({
+      Nome: c.nome,
+      Estado: c.estado || "",
+      "Líder da Cidade": c.liderCidade || "",
+      "Telefone do Líder": c.telefoneLider || "",
+      "Pastor Responsável": c.pastorResponsavel || "",
+      Ativo: formatBoolean(c.ativo),
+    }));
+
+    const congregationsRows = congregations.map((c) => ({
+      Nome: c.nome,
+      Cidade: cityMap[c.cidadeId] || "",
+      Bairro: c.bairro || "",
+      Endereço: c.endereco || "",
+      Pastor: c.pastor || "",
+      "Conselheiro Local": c.conselheiroLocal || "",
+      "Telefone do Conselheiro": c.telefoneConselheiro || "",
+      Ativo: formatBoolean(c.ativo),
+    }));
+
+    const youthRows = youth.map((y) => youthToExcelRow(y, cityMap, congMap));
+
+    const eventsRows = scopedEvents.map((e) => ({
+      Título: e.titulo,
+      Tipo: EVENT_TYPE_LABELS[e.tipo] || e.tipo,
+      Data: e.data || "",
+      Horário: e.horario || "",
+      Cidade: cityMap[e.cidadeId] || "",
+      Congregação: congMap[e.congregacaoId] || "",
+      Regional: formatBoolean(e.regional),
+      Local: e.local || "",
+      Descrição: e.descricao || "",
+    }));
+
+    const workbook = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(citiesRows), "Cidades");
+    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(congregationsRows), "Congregações");
+    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(youthRows), "Jovens");
+    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(eventsRows), "Eventos");
+
+    const filename = `portal-expansao-backup-total-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    window.XLSX.writeFile(workbook, filename);
+    return { cities: cities.length, congregations: congregations.length, youth: youth.length, events: scopedEvents.length };
+  },
+
   parseBackupFile(text) {
     const backup = JSON.parse(text);
     if (!backup || !backup.data || !Array.isArray(backup.data.cities)) {
@@ -167,7 +277,7 @@ export const BackupService = {
       "codigo", "nome", "data_nascimento", "naturalidade", "sexo", "telefone", "celular",
       "endereco", "numero", "bairro", "cep", "cidade", "congregacao", "status",
       "rg", "orgao_emissor", "cpf", "escolaridade", "profissao", "cargo",
-      "estado_civil", "outro_estado_civil", "conjuge",
+      "estado_civil", "outro_estado_civil", "conjuge", "pai", "mae",
       "pastor", "conselheiro_local", "conselheiro_cidade", "data_batismo_aguas",
       "batizado_espirito_santo", "instrumento", "prega", "canta", "outros_talentos",
       "qtd", "lider_expansao", "se_lider", "qual_departamento",
@@ -197,6 +307,8 @@ export const BackupService = {
       estado_civil: y.estadoCivil || "",
       outro_estado_civil: y.outroEstadoCivil || "",
       conjuge: y.conjuge || "",
+      pai: y.nomePai || "",
+      mae: y.nomeMae || "",
       pastor: y.pastor || "",
       conselheiro_local: y.conselheiroLocal || "",
       conselheiro_cidade: y.conselheiroCidade || "",
@@ -222,48 +334,7 @@ export const BackupService = {
     if (!window.XLSX) throw new Error("Biblioteca SheetJS não carregada.");
     const cityMap = Object.fromEntries(cities.map((c) => [c.id, c.nome]));
     const congMap = Object.fromEntries(congregations.map((c) => [c.id, c.nome]));
-    const rows = youthList.map((y) => ({
-      Código: y.codigo || "",
-      Nome: y.nome,
-      "Data de Nascimento": y.dataNascimento || "",
-      Naturalidade: y.naturalidade || "",
-      Sexo: SEXO_LABELS[y.sexo] || "",
-      Telefone: y.telefone || "",
-      Celular: y.celular || "",
-      Endereço: y.endereco || "",
-      Número: y.numero || "",
-      Bairro: y.bairro || "",
-      CEP: y.cep || "",
-      Cidade: cityMap[y.cidadeId] || "",
-      Congregação: congMap[y.congregacaoId] || "",
-      Status: YOUTH_STATUS_LABELS[y.status] || y.status,
-      RG: y.rg || "",
-      "Órgão Emissor": y.orgaoEmissor || "",
-      CPF: y.cpf || "",
-      Escolaridade: y.escolaridade || "",
-      Profissão: y.profissao || "",
-      Cargo: y.cargo || "",
-      "Estado Civil": y.estadoCivil || "",
-      "Outro (qual)?": y.outroEstadoCivil || "",
-      Cônjuge: y.conjuge || "",
-      Pastor: y.pastor || "",
-      "Conselheiro Local": y.conselheiroLocal || "",
-      "Conselheiro da Cidade": y.conselheiroCidade || "",
-      "Batismo nas Águas": y.dataBatismoAguas || "",
-      "Batizado no Espírito Santo": formatBoolean(y.batizadoEspiritoSanto),
-      Instrumento: y.instrumento || "",
-      Prega: formatBoolean(y.prega),
-      Canta: formatBoolean(y.canta),
-      "Outros Talentos": y.outrosTalentos || "",
-      Qtd: y.qtd || "",
-      "Líder de Expansão?": formatBoolean(y.liderExpansao),
-      "Se líder, qual?": y.seLider || "",
-      "Qual Departamento?": y.qualDepartamento || "",
-      "Nome do Dirigente": y.nomeDirigente || "",
-      "Cadastro Recebido Por": y.recebidoPor || "",
-      "Tipo de Admissão": y.tipoAdmissao || "",
-      Observações: y.observacoes || "",
-    }));
+    const rows = youthList.map((y) => youthToExcelRow(y, cityMap, congMap));
     const worksheet = window.XLSX.utils.json_to_sheet(rows);
     const workbook = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(workbook, worksheet, "Jovens");
