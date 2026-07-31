@@ -9,6 +9,17 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.7.1] — 2026-07-30
+
+### Alterado
+- Faixas etárias reorganizadas: as três primeiras faixas ("Até 12 anos",
+  "13 a 15 anos", "16 a 18 anos") viraram duas ("12 a 14 anos" e "15 a 18
+  anos"). As faixas de 19 anos para cima não mudaram. Afeta todos os
+  lugares que usam `AGE_RANGES` (`js/config/constants.js`): filtro de
+  faixa etária, gráfico "Distribuição por faixa etária" e tabela "Faixa
+  etária por sexo" no Dashboard, e o relatório "Faixa etária" em
+  Relatórios.
+
 ## [1.7.0] — 2026-07-30
 
 ### Adicionado

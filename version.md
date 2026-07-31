@@ -1,6 +1,6 @@
 # Versão
 
-**1.7.0**
+**1.7.1**
 
 Exibida na interface logo abaixo do logotipo (barra lateral e tela de login).
 Mantenha este arquivo sincronizado com `APP_VERSION` em `js/config/constants.js`.
