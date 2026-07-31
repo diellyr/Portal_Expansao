@@ -17,8 +17,11 @@ export async function bootstrapPage({ activeKey, title, breadcrumbs }) {
   }
 
   let isAdmin = false;
+  let role = null;
   try {
-    isAdmin = isAdminProfile(await getCurrentUserProfile());
+    const profile = await getCurrentUserProfile();
+    isAdmin = isAdminProfile(profile);
+    role = profile?.role || null;
   } catch (err) {
     console.error("Falha ao carregar perfil do usuário:", err);
   }
@@ -30,7 +33,7 @@ export async function bootstrapPage({ activeKey, title, breadcrumbs }) {
   const translatedTitle = t(navKey);
   const topbarTitle = translatedTitle === navKey ? title : translatedTitle;
 
-  renderSidebar(document.getElementById("sidebar"), activeKey, isAdmin);
+  renderSidebar(document.getElementById("sidebar"), activeKey, isAdmin, role);
   renderTopbar(document.getElementById("topbar"), { title: topbarTitle, breadcrumbs });
   refreshIcons();
 

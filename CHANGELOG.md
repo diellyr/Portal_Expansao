@@ -9,6 +9,25 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.9.0] — 2026-07-31
+
+### Adicionado
+- Novo módulo **Backup** (`pages/backup.html`), com um único botão
+  "Backup total", disponível para Líder Simplifique Regional, Conselheiro
+  Regional, Líder Simplifique e Conselheiro (além do Administrador) — os
+  perfis "Convidado" continuam sem acesso. Sempre lê do Supabase,
+  independentemente da fonte de dados ativa.
+- Alcance do backup por papel: Líder Simplifique Regional/Conselheiro
+  Regional levam todas as cidades; Líder Simplifique/Conselheiro levam
+  apenas a própria cidade (cidades/congregações/jovens já filtrados pelo
+  RLS; eventos filtrados no app, já que o RLS deliberadamente deixa esses
+  papéis lerem eventos de todas as cidades).
+- `BackupService.exportBackupTotal(profile)` reaproveita a mesma leitura de
+  tabelas do backup do Supabase já existente em Administração.
+- Barra lateral e `bootstrapPage()` agora suportam itens de menu
+  restritos por **lista de papéis** (`roles: [...]`), além do já existente
+  `adminOnly`.
+
 ## [1.8.0] — 2026-07-31
 
 ### Adicionado
