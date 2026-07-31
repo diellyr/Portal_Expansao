@@ -7,6 +7,7 @@ import { SettingsRepository } from "../repositories/settings-repository.js";
 import { clearAllStores as clearAllIndexedDbStores, clearStore as clearIndexedDbStore, STORES } from "../database/db.js";
 import * as supabaseDb from "../database/supabase-db.js";
 import { isSupabaseMode } from "./data-mode-service.js";
+import { isSupabaseConfigured } from "./supabase-settings-service.js";
 import { generateDemoData } from "../database/seed.js";
 import { toCSV } from "../parsers/csv-parser.js";
 import { downloadJSON, downloadCSV } from "../utils/file-utils.js";
@@ -40,6 +41,38 @@ export const BackupService = {
       data: { cities, congregations, youth, events, importHistory, settings },
     };
     const filename = `portal-expansao-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    downloadJSON(backup, filename);
+    return backup;
+  },
+
+  /**
+   * Reads directly from Supabase (bypassing the IndexedDB/Supabase toggle),
+   * so this always backs up the Supabase project regardless of which
+   * source is active in the browser right now. Requires Supabase to be
+   * configured; throws a clear error otherwise instead of silently
+   * exporting an empty/wrong backup.
+   */
+  async exportSupabaseBackup() {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Supabase não está configurado. Preencha a URL e a chave anon em Administração → Fonte de dados.");
+    }
+    const [cities, congregations, youth, events, importHistory, settingsRows, userProfiles] = await Promise.all([
+      supabaseDb.getAll(STORES.CITIES),
+      supabaseDb.getAll(STORES.CONGREGATIONS),
+      supabaseDb.getAll(STORES.YOUTH),
+      supabaseDb.getAll(STORES.EVENTS),
+      supabaseDb.getAll(STORES.IMPORT_HISTORY),
+      supabaseDb.getAll(STORES.SETTINGS),
+      supabaseDb.getAll("user_profiles").catch(() => []),
+    ]);
+    const backup = {
+      version: BACKUP_VERSION,
+      source: "supabase",
+      exportedAt: new Date().toISOString(),
+      counts: { cities: cities.length, congregations: congregations.length, youth: youth.length, events: events.length, userProfiles: userProfiles.length },
+      data: { cities, congregations, youth, events, importHistory, settings: settingsRows[0], userProfiles },
+    };
+    const filename = `portal-expansao-backup-supabase-${new Date().toISOString().slice(0, 10)}.json`;
     downloadJSON(backup, filename);
     return backup;
   },

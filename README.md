@@ -456,9 +456,12 @@ A importação é tolerante a variações na planilha:
 
 ## Backup e restauração
 
-- **Exportar backup completo** (`portal-expansao-backup-YYYY-MM-DD.json`): inclui cidades, congregações, jovens, eventos, configurações e histórico de importações.
-- **Restaurar backup**: mostra data do backup e quantidade de cada entidade antes de substituir os dados atuais (com confirmação explícita).
+- **Exportar backup completo** (`portal-expansao-backup-YYYY-MM-DD.json`): inclui cidades, congregações, jovens, eventos, configurações e histórico de importações — sempre da **fonte de dados ativa no momento** (IndexedDB ou Supabase, conforme a chave seletora em Administração → Fonte de dados).
+- **Baixar backup do Supabase** (`portal-expansao-backup-supabase-YYYY-MM-DD.json`): igual ao anterior, mas sempre lê diretamente do Supabase, **mesmo que a fonte ativa no navegador agora seja o IndexedDB** — útil para ter uma cópia do banco na nuvem sem precisar trocar a chave seletora. Também inclui a tabela `user_profiles` (perfis de acesso). Exige o Supabase configurado (URL + chave anon); se não estiver, mostra um erro claro em vez de baixar um arquivo vazio.
+- **Restaurar backup**: mostra data do backup e quantidade de cada entidade antes de substituir os dados atuais (com confirmação explícita). Restaura sempre na fonte ativa no momento (não tem uma versão "restaurar no Supabase" separada).
 - **Exportar jovens filtrados** em CSV ou Excel, tanto na página de Jovens quanto em Relatórios. As fotos não são incluídas nesses arquivos (ficariam ilegíveis como texto); elas fazem parte apenas do backup JSON, que preserva o cadastro por completo.
+
+**Backup automático (agendado)**: não é possível fazer isso só pelo app — é um site estático, sem nada rodando sozinho quando ninguém está com a página aberta. Para isso, use os backups automáticos do próprio Supabase (**Project Settings → Backups** no painel — a retenção e o self-service de restauração dependem do plano contratado).
 
 ## Zona de perigo
 
