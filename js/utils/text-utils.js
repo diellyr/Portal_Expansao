@@ -5,13 +5,18 @@
  */
 
 const DIACRITICS_REGEX = new RegExp("[\\u0300-\\u036f]", "g");
+// Straight and curly apostrophes -- common in Portuguese surnames (D'Ávila,
+// D'Angelo) and would otherwise split a name in two for substring search
+// (e.g. searching "davila" would not match "d'avila").
+const APOSTROPHE_REGEX = new RegExp("['\\u2019]", "g");
 
-/** Lowercase, strip accents, trim and collapse internal whitespace. */
+/** Lowercase, strip accents/apostrophes, trim and collapse internal whitespace. */
 export function normalizeText(value) {
   if (value === null || value === undefined) return "";
   return String(value)
     .normalize("NFD")
     .replace(DIACRITICS_REGEX, "")
+    .replace(APOSTROPHE_REGEX, "")
     .toLowerCase()
     .trim()
     .replace(/\s+/g, " ");
