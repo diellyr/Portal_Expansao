@@ -9,6 +9,59 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.12.0] — 2026-07-31
+
+### Adicionado
+Novo módulo **Estratégia AI** (`pages/estrategia-ai.html`) — usa inteligência
+artificial para explicar indicadores, identificar situações que merecem atenção e
+sugerir ações práticas com base nos dados reais já existentes, para líderes
+regionais, líderes de cidade, conselheiros e administração. **Nenhuma tabela,
+coluna, view, function, trigger, policy de RLS, bucket, relacionamento, índice ou
+migração foi criada ou alterada no Supabase.**
+
+- **Configuração multiprovedor** (só administradores): 18 provedores (OpenAI,
+  Google Gemini, Anthropic Claude, DeepSeek, Manus, xAI Grok, Mistral AI, Cohere,
+  Perplexity, OpenRouter, Azure OpenAI, AWS Bedrock, Google Vertex AI, Groq,
+  Together AI, Fireworks AI, Ollama local, LM Studio local, API personalizada),
+  cada um com adaptador isolado (`js/services/ai/providers/`). Chave de API digitada
+  na tela fica só na memória da aba (nunca em `localStorage`/`sessionStorage`);
+  em produção a chave fica como secret de uma nova _Supabase Edge Function_
+  (`supabase/functions/ai-strategy-proxy`, não implantada automaticamente por
+  este projeto) — o front-end nunca recebe a chave completa nesse modo.
+- **Camada segura de contexto**: a IA nunca gera SQL nem consulta o banco
+  livremente — escolhe entre 11 funções internas fixas
+  (`js/services/ai/context-functions.js`) que reaproveitam
+  `YouthService`/`CityService`/`CongregationService`/`DataQualityService`/
+  `CityComparisonService` já existentes, herdando automaticamente o RLS/escopo do
+  papel do usuário.
+- **Privacidade reforçada** (ativada por padrão): remove nomes, telefone,
+  endereço e data de nascimento completa antes de qualquer envio; converte idade
+  em faixa etária e talentos em booleanos.
+- **"Pergunte à Estratégia AI"**: pergunta em linguagem natural com resposta
+  estruturada (indicadores, evidências, recomendações, limitações, gráfico
+  quando aplicável), streaming cancelável, e a mensagem exata "Não existem dados
+  suficientes no sistema para responder com segurança." quando não há dados.
+- **13 ações rápidas** cobrindo as 15 funcionalidades pedidas: resumo executivo,
+  recomendações estratégicas, planejador de eventos, gerador de pauta, prestação
+  de contas, assistente de qualidade dos dados, detecção de padrões incomuns
+  (estatística explicável, sem IA), distribuição de responsabilidades, planejamento
+  de acompanhamento (linguagem neutra, nunca rótulos como "jovem problemático"),
+  assistente de comunicação (nunca envia nada automaticamente), cobertura
+  ministerial, simulador de cenários (cálculos determinísticos, a IA só
+  interpreta) e histórico de evolução (baseado em `createdAt`/`dataEntrada`/
+  `dataBatismoAguas` reais, com opção de importar um arquivo histórico
+  CSV/XLSX/JSON processado só no navegador para comparação pontual).
+- Sete das ações rápidas funcionam **mesmo sem nenhum provedor de IA
+  configurado**, porque os cálculos são determinísticos; ao acionar as demais sem
+  provedor configurado, o sistema mostra "Configure um provedor de inteligência
+  artificial para utilizar as análises estratégicas." em vez de simular uma
+  resposta.
+- Proteção contra prompt injection (conteúdo de campos livres é sempre enviado
+  como dado delimitado, nunca como instrução), lista de funções permitidas,
+  validação do JSON estruturado retornado pela IA com uma tentativa de correção e
+  fallback para texto simples, e fallback configurável entre provedor
+  principal/alternativo (só em timeout/indisponibilidade/limite de requisições).
+
 ## [1.11.0] — 2026-07-31
 
 ### Adicionado

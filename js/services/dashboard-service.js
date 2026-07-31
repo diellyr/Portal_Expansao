@@ -6,9 +6,9 @@ import { applyYouthFilters } from "./filter-service.js";
 import { AGE_RANGES, YOUTH_STATUS_LABELS, EVENT_TYPE_LABELS } from "../config/constants.js";
 import { calculateAge, isBirthdayInMonth, todayISO } from "../utils/dates.js";
 
-const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+export const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-function monthlyCounts(items, dateGetter, year) {
+export function monthlyCounts(items, dateGetter, year) {
   const counts = new Array(12).fill(0);
   items.forEach((item) => {
     const dateStr = dateGetter(item);

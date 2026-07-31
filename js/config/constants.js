@@ -1,7 +1,7 @@
 export const APP_NAME = "Portal Expansão";
 export const APP_SUBTITLE = "Gestão Regional";
 // Keep this in sync with version.md at the repository root.
-export const APP_VERSION = "1.11.0";
+export const APP_VERSION = "1.12.0";
 
 export const DB_NAME = "portal_expansao_db";
 export const DB_VERSION = 1;
@@ -118,6 +118,13 @@ export const NAV_ITEMS = [
     icon: "database-backup",
     label: "Backup & Exportação",
     key: "backup",
+    roles: ["lider_simplifique_regional", "conselheiro_regional", "lider_simplifique", "conselheiro"],
+  },
+  {
+    href: "estrategia-ai.html",
+    icon: "brain-circuit",
+    label: "Estratégia AI",
+    key: "estrategia-ai",
     roles: ["lider_simplifique_regional", "conselheiro_regional", "lider_simplifique", "conselheiro"],
   },
   { href: "usuarios.html", icon: "user-cog", label: "Usuários", key: "usuarios", adminOnly: true },

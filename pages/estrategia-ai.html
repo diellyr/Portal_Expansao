@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estratégia AI — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <link rel="stylesheet" href="../css/estrategia-ai.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Estratégia AI</h2>
+          <p class="page-header-subtitle">
+            Análise de dados reais, indicadores explicados e sugestões práticas para apoiar decisões administrativas.
+          </p>
+        </div>
+
+        <section aria-label="Status" id="ai-status-bar" class="ai-status-bar"></section>
+
+        <section aria-label="Configuração da Inteligência Artificial" id="ai-config-section" hidden>
+          <div class="surface ai-config-card">
+            <div class="ai-config-header">
+              <h3><i data-lucide="settings-2" class="icon"></i> Configuração da Inteligência Artificial</h3>
+              <p class="text-muted">
+                <strong>Provedor</strong> é a empresa/plataforma responsável pela API (ex.: OpenAI, Anthropic).
+                <strong>Modelo</strong> é a IA específica usada dentro daquele provedor (ex.: gpt-4o, claude-sonnet-5).
+              </p>
+            </div>
+            <div id="ai-config-form"></div>
+          </div>
+        </section>
+
+        <section aria-label="Pergunte à Estratégia AI" class="surface ai-ask-card">
+          <h3><i data-lucide="message-circle-question" class="icon"></i> Pergunte à Estratégia AI</h3>
+          <div id="ai-suggested-questions" class="ai-suggested-questions"></div>
+          <div class="ai-ask-form">
+            <textarea id="ai-question-input" class="form-control" rows="3" placeholder="Ex.: Quais cidades possuem mais jovens sem conselheiro?"></textarea>
+            <div class="ai-ask-actions">
+              <button type="button" class="btn btn-primary" id="ai-ask-btn">
+                <i data-lucide="send" class="icon icon-sm"></i> Analisar
+              </button>
+              <button type="button" class="btn btn-secondary" id="ai-cancel-btn" hidden>
+                <i data-lucide="square" class="icon icon-sm"></i> Cancelar geração
+              </button>
+            </div>
+          </div>
+          <div id="ai-privacy-indicator" class="ai-privacy-indicator"></div>
+        </section>
+
+        <section aria-label="Ações rápidas">
+          <h3 class="section-title"><i data-lucide="zap" class="icon"></i> Ações rápidas</h3>
+          <div class="grid grid-cards" id="ai-quick-actions"></div>
+        </section>
+
+        <section aria-label="Resultado" id="ai-result-section" hidden>
+          <h3 class="section-title"><i data-lucide="bar-chart-3" class="icon"></i> Resultado</h3>
+          <div class="surface ai-result-card" id="ai-result-card"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="../js/pages/estrategia-ai.js"></script>
+</body>
+</html>
