@@ -111,6 +111,7 @@ export const NAV_ITEMS = [
   { href: "qualidade.html", icon: "shield-check", label: "Qualidade dos Cadastros", key: "qualidade" },
   { href: "listas.html", icon: "clipboard-list", label: "Gerador de Listas", key: "listas" },
   { href: "comparador.html", icon: "git-compare", label: "Comparador de Cidades", key: "comparador" },
+  { href: "cobertura-regional.html", icon: "globe", label: "Cobertura Regional", key: "cobertura-regional" },
   {
     href: "backup.html",
     icon: "database-backup",
@@ -123,3 +124,9 @@ export const NAV_ITEMS = [
 ];
 
 export const DEMO_FLAG = "isDemo";
+
+// Front-end-only thresholds used by Alertas Automáticos and Painel de
+// Cobertura Regional -- always spelled out explicitly in the UI text next
+// to any number they affect, never a silent flag.
+export const POUCOS_JOVENS_LIMITE = 3;
+export const CONGREGACAO_COMPLETUDE_MINIMA = 50;

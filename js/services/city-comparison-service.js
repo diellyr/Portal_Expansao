@@ -53,6 +53,19 @@ export const CityComparisonService = {
     });
   },
 
+  /** Reshapes compare() rows into one row per faixa etária, with one column (by cidadeId) per city. */
+  ageDistributionRows(compareRows) {
+    const ranges = compareRows[0]?.faixaEtaria.map((f) => f.key) || [];
+    const rangeLabels = Object.fromEntries((compareRows[0]?.faixaEtaria || []).map((f) => [f.key, f.label]));
+    return ranges.map((key) => {
+      const row = { faixa: rangeLabels[key] };
+      compareRows.forEach((r) => {
+        row[r.cidadeId] = r.faixaEtaria.find((f) => f.key === key)?.quantidade ?? 0;
+      });
+      return row;
+    });
+  },
+
   /** Congregations belonging to any of the given cities, with their own per-congregação metrics. */
   congregationBreakdown(cityIds, { cities, congregations, youth }) {
     const cityMap = Object.fromEntries(cities.map((c) => [c.id, c.nome]));

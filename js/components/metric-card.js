@@ -15,7 +15,7 @@ export function metricCard({ title, value, icon, meta, tooltip, onClick, suffix 
         el("span", { class: "metric-card-title" }, title),
         el("div", { class: "metric-card-icon" }, [el("i", { "data-lucide": icon, class: "icon" })]),
       ]),
-      el("div", { class: "metric-card-value" }, `${formatNumber(value)}${suffix}`),
+      el("div", { class: "metric-card-value" }, `${typeof value === "string" ? value : formatNumber(value)}${suffix}`),
       meta ? el("div", { class: "metric-card-meta" }, meta) : null,
     ]
   );

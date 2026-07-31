@@ -106,16 +106,7 @@ function renderCharts(rows) {
 }
 
 function renderFaixaEtariaTable(rows) {
-  const ranges = rows[0]?.faixaEtaria.map((f) => f.key) || [];
-  const rangeLabels = Object.fromEntries((rows[0]?.faixaEtaria || []).map((f) => [f.key, f.label]));
-
-  const tableRows = ranges.map((key) => {
-    const row = { faixa: rangeLabels[key] };
-    rows.forEach((r) => {
-      row[r.cidadeId] = r.faixaEtaria.find((f) => f.key === key)?.quantidade ?? 0;
-    });
-    return row;
-  });
+  const tableRows = CityComparisonService.ageDistributionRows(rows);
 
   renderDataTable(qs("#faixa-etaria-table"), {
     columns: [

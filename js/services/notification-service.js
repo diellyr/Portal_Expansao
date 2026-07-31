@@ -4,6 +4,7 @@ import { CityService } from "./city-service.js";
 import { CongregationService } from "./congregation-service.js";
 import { todayISO, isBirthdayInMonth, isBirthdayInWeek } from "../utils/dates.js";
 import { averageCompleteness } from "../utils/completeness-utils.js";
+import { POUCOS_JOVENS_LIMITE, CONGREGACAO_COMPLETUDE_MINIMA } from "../config/constants.js";
 
 /**
  * Aggregates real, actionable alerts for the topbar notification bell.
@@ -23,8 +24,6 @@ export const CATEGORY_LABELS = {
 };
 export const CATEGORY_ORDER = ["atencao", "aniversario", "oportunidade", "informativo"];
 
-const POUCOS_JOVENS_LIMITE = 3;
-const CONGREGACAO_COMPLETUDE_MINIMA = 50;
 const MAX_ANIVERSARIANTES_LISTADOS = 5;
 
 function entry(category, icon, text, href) {
@@ -86,7 +85,7 @@ export const NotificationService = {
           "informativo",
           "map-pin",
           `${poucosJovens.length} cidade(s) com ${POUCOS_JOVENS_LIMITE} jovem(ns) ou menos cadastrados -- critério: total ≤ ${POUCOS_JOVENS_LIMITE}. ${nomes}`,
-          "relatorios.html"
+          "cobertura-regional.html"
         )
       );
     }
