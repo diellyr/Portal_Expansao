@@ -12,6 +12,26 @@
   .danger-zone-item { flex-direction: column; align-items: stretch; }
   .topbar-user span:not(.topbar-user-avatar) { display: none; }
   #logout-btn-label { display: none; }
+
+  /* Global search collapses to an icon button that expands into a
+     full-width overlay bar, instead of competing for space in a
+     narrow topbar next to the theme/notif/lang/logout controls. */
+  .topbar-search { display: none; }
+  .search-mobile-toggle { display: inline-flex; }
+  .topbar-search.mobile-open {
+    display: block;
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    right: 0;
+    max-width: none;
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    z-index: 40;
+  }
+  .topbar-search.mobile-open .search-dropdown { left: var(--space-3); right: var(--space-3); }
 }
 
 @media (min-width: 641px) {
@@ -23,4 +43,22 @@
   .app-shell { display: block; }
   .main-content { padding: 0; max-width: none; }
   .surface { box-shadow: none; border: 1px solid #ccc; }
+}
+
+/* Print-only area used by js/utils/print-utils.js -- content (e.g. a ficha
+   built for a modal) is moved in here right before window.print(), and
+   everything else on the page is hidden for the duration of the print. */
+#app-print-area { display: none; }
+@media print {
+  body.app-printing > *:not(#app-print-area) { display: none !important; }
+  body.app-printing #app-print-area {
+    display: block !important;
+    position: static;
+    padding: var(--space-5);
+    color: #000;
+    background: #fff;
+  }
+  .ficha-print-title { font-size: 20px; font-weight: 700; margin: 0 0 var(--space-4); }
+  .ficha-print .ficha-header { margin-bottom: var(--space-4); }
+  .ficha-print .detail-grid { break-inside: avoid; }
 }

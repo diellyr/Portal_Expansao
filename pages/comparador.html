@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparador de Cidades — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Comparador de Cidades</h2>
+          <p class="page-header-subtitle">Selecione 2 ou mais cidades para comparar indicadores lado a lado.</p>
+        </div>
+
+        <section aria-label="Seleção de cidades" class="surface" style="padding: var(--space-4); margin-bottom: var(--space-4);">
+          <div class="segment-chips" id="city-select-chips"></div>
+        </section>
+
+        <div id="comparador-empty"></div>
+        <div id="comparador-content" hidden>
+          <section aria-label="Resumo">
+            <h3 class="section-title"><i data-lucide="table" class="icon"></i> Resumo por cidade</h3>
+            <div class="surface" style="padding: var(--space-4); margin-bottom: var(--space-5);">
+              <div id="summary-table"></div>
+            </div>
+          </section>
+
+          <section aria-label="Gráficos comparativos">
+            <h3 class="section-title"><i data-lucide="bar-chart-3" class="icon"></i> Gráficos comparativos</h3>
+            <div class="grid grid-charts" id="comparador-charts"></div>
+          </section>
+
+          <section aria-label="Distribuição por faixa etária" style="margin-top: var(--space-5);">
+            <h3 class="section-title"><i data-lucide="users" class="icon"></i> Distribuição por faixa etária</h3>
+            <div class="surface" style="padding: var(--space-4);">
+              <div id="faixa-etaria-table"></div>
+            </div>
+          </section>
+
+          <section aria-label="Congregações" style="margin-top: var(--space-5);">
+            <h3 class="section-title"><i data-lucide="building-2" class="icon"></i> Congregações das cidades selecionadas</h3>
+            <div class="surface" style="padding: var(--space-4);">
+              <div id="congregacoes-table"></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script type="module" src="../js/pages/comparador.js"></script>
+</body>
+</html>

@@ -9,6 +9,60 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.11.0] — 2026-07-31
+
+### Adicionado
+Dez novos módulos de análise e produtividade, todos calculados no front-end sobre
+dados já lidos pelos serviços existentes — **nenhuma tabela, coluna, view, function,
+trigger, policy de RLS, bucket, edge function, índice ou migração foi criada ou
+alterada no Supabase**.
+
+- **Central de Qualidade dos Cadastros** (`pages/qualidade.html`): cadastros
+  incompletos, possíveis duplicados por nome/telefone (comparação sem acento/
+  maiúsculas/apóstrofo), datas incoerentes (batismo antes do nascimento, datas no
+  futuro) e cidades/congregações com grafia semelhante. Cada item linka para
+  `jovens.html?edit=<id>` (novo deep-link) para correção manual — nada é alterado
+  automaticamente.
+- **Pesquisa Global Inteligente**: campo de busca na barra superior (`topbar.js`),
+  disponível em toda a aplicação, indexando nome/cidade/congregação/conselheiro/
+  pastor/instrumento/telefone dos jovens já carregados.
+- **Alertas Automáticos** ampliados e agora categorizados (Atenção necessária /
+  Aniversários / Oportunidade ministerial / Informativo): aniversariantes da
+  semana e do mês, sem batismo, sem conselheiro, congregações com completude
+  abaixo de 50%, jovens com talentos identificáveis, cidades com poucos jovens
+  cadastrados (limite ≤ 3, sempre citado no texto do alerta).
+- **Relatório Individual do Jovem**: a ficha do jovem (extraída para
+  `js/components/youth-ficha-modal.js` e reaproveitada em Jovens, Qualidade,
+  Pesquisa Global, Listas e Favoritos) ganhou Imprimir/PDF (via impressão do
+  navegador), Cartão resumido e Copiar para WhatsApp.
+- **Segmentação Automática**: chips de filtro rápido em Jovens (Adolescentes,
+  Jovens adultos, Músicos, Pregadores, Cantores, Não batizados, Aniversariantes
+  do mês, Sem conselheiro, Cadastro incompleto), combináveis com os filtros e a
+  busca existentes.
+- **Gerador de Listas para Eventos** (`pages/listas.html`): lista sob medida
+  reaproveitando filtros/segmentos/tabela de Jovens, com exportação em Excel,
+  impressão/PDF, cópia de nomes e texto pronto para WhatsApp.
+- **Comparador de Cidades** (`pages/comparador.html`): seleção de 2+ cidades com
+  gráficos de barras e tabelas (totais, faixa etária, músicos/pregadores/
+  cantores, batismos, % com conselheiro, completude média).
+- **Painel de Cobertura Regional** (`pages/cobertura-regional.html`): visão de
+  todas as cidades com linguagem deliberadamente neutra — nunca "melhor/pior
+  cidade" ou "cidade vencedora" — e um aviso fixo de que os números refletem
+  apenas o que está cadastrado no sistema.
+- **Modo Apresentação** (Dashboard): oculta menu/topo, amplia gráficos e
+  indicadores, solicita tela cheia quando suportado, com saída sempre visível
+  (botão, Esc ou saída manual da tela cheia).
+- **Favoritos e Preferências** (`pages/favoritos.html`): cidades favoritas
+  (estrela em Cidades), jovens vistos recentemente (guarda apenas id+nome),
+  itens por página em Jovens e opção de limpar tudo — tudo em `localStorage`,
+  nunca acompanha o usuário para outro dispositivo.
+
+### Corrigido
+- `normalizeText()` (usado pela busca global e pela detecção de duplicados) não
+  removia apóstrofos, então nomes como "D'Ávila" não eram encontrados buscando
+  "davila". Apóstrofos retos e tipográficos agora são removidos junto com os
+  acentos.
+
 ## [1.10.0] — 2026-07-31
 
 ### Adicionado

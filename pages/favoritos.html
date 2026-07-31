@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Favoritos e Preferências — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Favoritos e Preferências</h2>
+          <p class="page-header-subtitle">Atalhos e preferências de exibição salvos neste navegador.</p>
+        </div>
+
+        <div class="alert alert-info" id="local-only-notice" style="margin-bottom: var(--space-5);">
+          <i data-lucide="monitor" class="icon icon-sm"></i>
+          <span>
+            Estas preferências ficam salvas apenas neste navegador (não em sua conta) -- não seguem para outro
+            computador ou celular, e não incluem senhas nem listas completas de jovens.
+          </span>
+        </div>
+
+        <div id="prefs-unavailable-notice" hidden style="margin-bottom: var(--space-5);">
+          <div class="alert alert-warning">
+            <i data-lucide="alert-triangle" class="icon icon-sm"></i>
+            <span>Não foi possível acessar o armazenamento local do navegador -- favoritos e preferências não poderão ser salvos nesta sessão.</span>
+          </div>
+        </div>
+
+        <section aria-label="Cidades favoritas" style="margin-bottom: var(--space-5);">
+          <h3 class="section-title"><i data-lucide="star" class="icon"></i> Cidades favoritas</h3>
+          <div class="surface" style="padding: var(--space-4);">
+            <div id="favorite-cities-list"></div>
+          </div>
+        </section>
+
+        <section aria-label="Jovens vistos recentemente" style="margin-bottom: var(--space-5);">
+          <h3 class="section-title"><i data-lucide="history" class="icon"></i> Jovens vistos recentemente</h3>
+          <div class="surface" style="padding: var(--space-4);">
+            <div id="recent-youth-list"></div>
+          </div>
+        </section>
+
+        <section aria-label="Preferências de exibição" style="margin-bottom: var(--space-5);">
+          <h3 class="section-title"><i data-lucide="sliders-horizontal" class="icon"></i> Preferências de exibição</h3>
+          <div class="surface" style="padding: var(--space-4);">
+            <div class="form-group" style="max-width: 220px; margin-bottom: 0;">
+              <label for="rows-per-page-pref">Itens por página em Jovens</label>
+              <select id="rows-per-page-pref" class="form-control">
+                <option value="12">12</option>
+                <option value="24">24</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Limpar preferências">
+          <div class="surface" style="padding: var(--space-4);">
+            <p class="text-muted" style="margin: 0 0 var(--space-3);">
+              Remove todos os favoritos, jovens vistos recentemente e preferências de exibição salvos neste navegador.
+              Não afeta nenhum dado no Supabase.
+            </p>
+            <button type="button" class="btn btn-secondary" id="clear-prefs-btn">
+              <i data-lucide="trash-2" class="icon icon-sm"></i> Limpar preferências locais
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="../js/pages/favoritos.js"></script>
+</body>
+</html>

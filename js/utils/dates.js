@@ -69,6 +69,23 @@ export function isBirthdayInMonth(birthDateStr, month) {
   return m === month;
 }
 
+/**
+ * Checks the next 7 days (today included) for a birthday, comparing only
+ * month/day so the birth year never matters -- handles month/year wraparound
+ * (e.g. Dec 29 checked against a Jan 2 birthday) correctly.
+ */
+export function isBirthdayInWeek(birthDateStr, referenceDate = new Date()) {
+  if (!birthDateStr) return false;
+  const [, month, day] = birthDateStr.split("-").map(Number);
+  if (!month || !day) return false;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(referenceDate);
+    d.setDate(d.getDate() + i);
+    if (d.getMonth() + 1 === month && d.getDate() === day) return true;
+  }
+  return false;
+}
+
 export function formatDateBR(dateStr) {
   if (!dateStr) return "Não informado";
   const [year, month, day] = dateStr.split("-");

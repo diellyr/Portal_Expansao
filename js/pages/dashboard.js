@@ -9,6 +9,7 @@ import { renderMetricCards } from "../components/metric-card.js";
 import { createChartCard, createMultiLineChartCard } from "../components/chart-card.js";
 import { renderLoading } from "../components/loading.js";
 import { emptyState } from "../components/empty-state.js";
+import { createPresentationModeToggle } from "../components/presentation-mode.js";
 import { el, qs, refreshIcons } from "../utils/dom-utils.js";
 import { formatDateBR } from "../utils/dates.js";
 import { formatNumber } from "../utils/formatters.js";
@@ -30,6 +31,7 @@ const yearCharts = {};
 let growthChartCard = null;
 
 async function init() {
+  qs("#presentation-mode-slot").appendChild(createPresentationModeToggle());
   renderLoading(qs("#metric-cards"), "Carregando indicadores...");
   [cities, congregations] = await Promise.all([CityService.list(), CongregationService.list()]);
   const youth = await YouthService.list();

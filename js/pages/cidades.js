@@ -1,5 +1,6 @@
 import { bootstrapPage } from "../app.js";
 import { CityService } from "../services/city-service.js";
+import { PreferencesService } from "../services/preferences-service.js";
 import { renderDataTable, sortRows } from "../components/data-table.js";
 import { renderPagination } from "../components/pagination.js";
 import { openModal, confirmModal } from "../components/modal.js";
@@ -13,6 +14,7 @@ if (ok) init();
 let allCities = [];
 let searchTerm = "";
 let statusFilter = "all";
+let onlyFavorites = false;
 let sort = { key: "nome", dir: "asc" };
 let page = 1;
 const pageSize = 10;
@@ -35,6 +37,12 @@ async function init() {
     render();
   });
 
+  qs("#only-favorites-filter").addEventListener("change", (e) => {
+    onlyFavorites = e.target.checked;
+    page = 1;
+    render();
+  });
+
   qs("#new-city-btn").addEventListener("click", () => openCityForm());
 }
 
@@ -47,6 +55,7 @@ function filteredCities() {
   return allCities.filter((c) => {
     if (statusFilter !== "all" && (statusFilter === "ativo") !== c.ativo) return false;
     if (searchTerm && !c.nome.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (onlyFavorites && !PreferencesService.isFavoriteCity(c.id)) return false;
     return true;
   });
 }
@@ -58,6 +67,31 @@ function render() {
 
   renderDataTable(qs("#cities-table"), {
     columns: [
+      {
+        key: "favorita",
+        label: "Favorita",
+        sortable: false,
+        render: (r) =>
+          el(
+            "button",
+            {
+              type: "button",
+              class: "btn btn-ghost btn-sm btn-icon",
+              "aria-label": PreferencesService.isFavoriteCity(r.id) ? "Remover dos favoritos" : "Adicionar aos favoritos",
+              "data-tooltip": PreferencesService.isFavoriteCity(r.id) ? "Remover dos favoritos" : "Adicionar aos favoritos",
+              onClick: () => {
+                PreferencesService.toggleFavoriteCity(r.id);
+                render();
+              },
+            },
+            [
+              el("i", {
+                "data-lucide": "star",
+                class: `icon icon-sm${PreferencesService.isFavoriteCity(r.id) ? " favorite-star-active" : ""}`,
+              }),
+            ]
+          ),
+      },
       { key: "nome", label: "Cidade" },
       { key: "pastorResponsavel", label: "Pastor responsável", render: (r) => r.pastorResponsavel || "—" },
       { key: "totalCongregacoes", label: "Congregações" },
