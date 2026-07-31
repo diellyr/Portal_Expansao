@@ -119,6 +119,10 @@
               <button type="button" class="btn btn-secondary" id="restore-backup-btn"><i data-lucide="upload" class="icon icon-sm"></i> Restaurar backup</button>
               <input type="file" id="backup-file-input" accept=".json" class="visually-hidden" />
             </div>
+            <p class="text-muted" style="margin: var(--space-3) 0 0;">"Exportar backup" acima baixa os dados da fonte ativa no momento (IndexedDB ou Supabase, conforme a chave seletora). O botão abaixo baixa direto do Supabase, mesmo que a fonte ativa agora seja o IndexedDB.</p>
+            <div class="row-wrap gap-2" style="margin-top: var(--space-3);">
+              <button type="button" class="btn btn-secondary" id="export-supabase-backup-btn"><i data-lucide="cloud-download" class="icon icon-sm"></i> Baixar backup do Supabase</button>
+            </div>
           </div>
         </section>
 

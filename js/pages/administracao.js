@@ -533,6 +533,15 @@ function setupBackup() {
     toast.success("Backup criado com sucesso.");
   });
 
+  qs("#export-supabase-backup-btn").addEventListener("click", async () => {
+    try {
+      await BackupService.exportSupabaseBackup();
+      toast.success("Backup do Supabase criado com sucesso.");
+    } catch (err) {
+      toast.error(`Não foi possível gerar o backup do Supabase: ${err.message}`);
+    }
+  });
+
   qs("#restore-backup-btn").addEventListener("click", () => qs("#backup-file-input").click());
   qs("#backup-file-input").addEventListener("change", async (e) => {
     const file = e.target.files[0];

@@ -9,6 +9,21 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.8.0] — 2026-07-31
+
+### Adicionado
+- Botão **"Baixar backup do Supabase"** em Administração → Backup e
+  restauração: lê diretamente do Supabase (cidades, congregações, jovens,
+  eventos, configurações, histórico de importações e perfis de usuário),
+  independentemente de qual fonte de dados estiver ativa no momento no
+  navegador. Exige Supabase configurado; mostra um erro claro caso
+  contrário. Complementa o "Exportar backup completo" já existente, que
+  segue a fonte ativa.
+- README documenta a diferença entre os dois botões de backup e explica
+  por que o backup **automático** (agendado) não é possível só pelo app —
+  requer os backups nativos do Supabase (dependem do plano) ou uma
+  automação externa.
+
 ## [1.7.3] — 2026-07-30
 
 ### Alterado
