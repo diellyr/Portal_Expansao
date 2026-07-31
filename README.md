@@ -16,6 +16,7 @@ Este é um **MVP 100% local**, sem backend externo, pensado para ser publicado c
 
 - [Objetivo](#objetivo)
 - [Funcionalidades](#funcionalidades)
+- [Módulos de análise e produtividade (v1.11.0)](#módulos-de-análise-e-produtividade-v1110)
 - [Tecnologias](#tecnologias)
 - [Arquitetura](#arquitetura)
 - [Estrutura de arquivos](#estrutura-de-arquivos)
@@ -55,6 +56,49 @@ Dar ao líder regional uma visão completa da juventude das nove cidades: total 
 - **Idioma** da interface (Português, Espanhol, Inglês) selecionável na barra superior — a tradução cobre a navegação, a barra superior e a tela de login; o conteúdo específico de cada página permanece em português nesta versão.
 - **Fonte de dados alternável** (IndexedDB ou Supabase) em Administração, para testar a migração para um banco real — veja [Integração com Supabase](#integração-com-supabase-modo-desenvolvimento).
 - **Autenticação real** via Supabase Auth (substitui o login demonstrativo anterior) — veja [Autenticação](#autenticação).
+
+## Módulos de análise e produtividade (v1.11.0)
+
+Dez módulos adicionados sem nenhuma alteração de schema no Supabase — tudo calculado no
+front-end a partir dos mesmos dados já lidos por `YouthService`/`CityService`/
+`CongregationService`, respeitando o RBAC existente automaticamente (RLS já filtra o que
+cada papel pode ler).
+
+- **Central de Qualidade dos Cadastros** (`qualidade.html`) — sinaliza cadastros
+  incompletos, possíveis duplicados (nome/telefone, comparados sem acento/maiúsculas),
+  datas incoerentes (batismo antes do nascimento, datas no futuro) e cidades/congregações
+  com grafia semelhante. Nunca altera nada sozinho: cada item tem um botão "Abrir cadastro"
+  que leva à edição manual em Jovens.
+- **Pesquisa Global Inteligente** — campo de busca na barra superior (todas as páginas),
+  encontra jovens por nome, cidade, congregação, conselheiro, pastor, instrumento ou
+  telefone, com busca sem acento/maiúscula e resultados que abrem a ficha direto.
+- **Alertas Automáticos** (sino da barra superior) — agora organizados em categorias
+  (Atenção necessária, Aniversários, Oportunidade ministerial, Informativo): aniversariantes
+  da semana/mês, sem batismo, sem conselheiro, congregações com completude abaixo de 50%,
+  jovens com talentos identificáveis e cidades com poucos jovens cadastrados (limite ≤ 3,
+  sempre citado explicitamente no texto do alerta).
+- **Relatório Individual do Jovem** — a ficha do jovem (usada em Jovens, Qualidade, Pesquisa
+  Global, Listas e Favoritos) ganhou "Imprimir/PDF" (via impressão do navegador), "Cartão
+  resumido" para reunião de liderança e "Copiar para WhatsApp".
+- **Segmentação Automática** — chips de filtro rápido em Jovens (Adolescentes, Jovens
+  adultos, Músicos, Pregadores, Cantores, Não batizados, Aniversariantes do mês, Sem
+  conselheiro, Cadastro incompleto), combináveis com os filtros e a busca já existentes.
+- **Gerador de Listas para Eventos** (`listas.html`) — monta uma lista sob medida (mesmos
+  filtros/segmentos de Jovens) e exporta em Excel, imprime/gera PDF, copia só os nomes ou
+  um texto pronto para WhatsApp.
+- **Comparador de Cidades** (`comparador.html`) — seleção de 2+ cidades, gráficos de barras
+  e tabelas comparando totais, faixa etária, músicos/pregadores/cantores, batismos, %
+  com conselheiro e completude média.
+- **Painel de Cobertura Regional** (`cobertura-regional.html`) — visão de todas as cidades
+  com linguagem deliberadamente neutra (nunca "melhor/pior cidade" ou "vencedora"; usa
+  "maior/menor quantidade registrada", "região que pode precisar de apoio" etc.) e um aviso
+  fixo de que os números refletem só o que está cadastrado no sistema.
+- **Modo Apresentação** (Dashboard) — oculta menu/topo, aumenta gráficos/indicadores e
+  solicita tela cheia (com um botão sempre visível para sair, além de Esc).
+- **Favoritos e Preferências** (`favoritos.html`) — cidades favoritas (estrela em Cidades),
+  jovens vistos recentemente (guarda só id+nome, nunca telefone/data/endereço), itens por
+  página em Jovens e um botão para limpar tudo. Fica só no navegador local (`localStorage`)
+  e nunca acompanha o usuário para outro dispositivo.
 
 ## Tecnologias
 
@@ -97,6 +141,13 @@ portal-expansao/
 │   ├── jovens.html
 │   ├── eventos.html
 │   ├── relatorios.html
+│   ├── qualidade.html          # Central de Qualidade dos Cadastros
+│   ├── listas.html              # Gerador de Listas para Eventos
+│   ├── comparador.html          # Comparador de Cidades
+│   ├── cobertura-regional.html  # Painel de Cobertura Regional
+│   ├── favoritos.html           # Favoritos e Preferências
+│   ├── backup.html
+│   ├── usuarios.html
 │   └── administracao.html
 ├── css/
 │   ├── variables.css          # Design tokens (cores, espaçamento, tipografia...)
