@@ -3,6 +3,7 @@ import { YouthService } from "../services/youth-service.js";
 import { CityService } from "../services/city-service.js";
 import { CongregationService } from "../services/congregation-service.js";
 import { defaultFilters, applyYouthFilters, availableCongregations } from "../services/filter-service.js";
+import { applySegment, segmentCounts } from "../services/segmentation-service.js";
 import { BackupService } from "../services/backup-service.js";
 import { renderFilterBar, renderFilterChips } from "../components/filter-bar.js";
 import { renderDataTable, sortRows } from "../components/data-table.js";
@@ -24,6 +25,7 @@ let congregations = [];
 let instruments = [];
 let filters = defaultFilters();
 let searchTerm = "";
+let activeSegment = "all";
 let sort = { key: "nome", dir: "asc" };
 let page = 1;
 const pageSize = 12;
@@ -122,13 +124,57 @@ function congName(id) {
   return congregations.find((c) => c.id === id)?.nome || "—";
 }
 
-function getFilteredSorted() {
+function getFilteredBeforeSegment() {
   let rows = applyYouthFilters(allYouth, filters);
   if (searchTerm) rows = rows.filter((y) => y.nome.toLowerCase().includes(searchTerm.toLowerCase()));
+  return rows;
+}
+
+function getFilteredSorted() {
+  const rows = applySegment(getFilteredBeforeSegment(), activeSegment);
   return sortRows(rows, sort);
 }
 
+function renderSegmentChips() {
+  const container = qs("#segment-chips");
+  container.innerHTML = "";
+  const baseRows = getFilteredBeforeSegment();
+  const counts = segmentCounts(baseRows);
+
+  const allChip = el(
+    "button",
+    { type: "button", class: `segment-chip${activeSegment === "all" ? " active" : ""}` },
+    [el("span", {}, "Todos"), el("span", { class: "segment-chip-count" }, String(baseRows.length))]
+  );
+  allChip.addEventListener("click", () => {
+    activeSegment = "all";
+    page = 1;
+    render();
+  });
+  container.appendChild(allChip);
+
+  counts.forEach((s) => {
+    const chip = el(
+      "button",
+      {
+        type: "button",
+        class: `segment-chip${activeSegment === s.key ? " active" : ""}`,
+        "data-tooltip": s.tooltip,
+      },
+      [el("i", { "data-lucide": s.icon, class: "icon icon-sm" }), el("span", {}, s.label), el("span", { class: "segment-chip-count" }, String(s.count))]
+    );
+    chip.addEventListener("click", () => {
+      activeSegment = activeSegment === s.key ? "all" : s.key;
+      page = 1;
+      render();
+    });
+    container.appendChild(chip);
+  });
+  refreshIcons();
+}
+
 function render() {
+  renderSegmentChips();
   const rows = getFilteredSorted();
   const start = (page - 1) * pageSize;
   const pageRows = rows.slice(start, start + pageSize);
