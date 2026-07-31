@@ -5,6 +5,7 @@ import { printNode } from "../utils/print-utils.js";
 import { formatDateBR } from "../utils/dates.js";
 import { formatBoolean } from "../utils/formatters.js";
 import { YOUTH_STATUS_LABELS, SEXO_LABELS, TIPO_ADMISSAO_LABELS } from "../config/constants.js";
+import { PreferencesService } from "../services/preferences-service.js";
 
 /**
  * Shared "ficha do jovem" (individual youth report) -- used by Jovens,
@@ -146,6 +147,7 @@ export function buildWhatsAppSummary(youth, cityLabel, congLabel) {
  * list it already has loaded -- no extra Supabase/IndexedDB reads.
  */
 export function openYouthFicha(youth, cityLabel, congLabel) {
+  PreferencesService.addRecentYouth(youth.id, youth.nome);
   const body = el("div", {}, [fichaHeader(youth, cityLabel, congLabel), fichaGrid(youth, cityLabel, congLabel)]);
 
   openModal({

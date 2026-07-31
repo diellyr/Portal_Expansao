@@ -172,6 +172,8 @@
 }
 .segment-chip.active .segment-chip-count { background: var(--color-primary); color: #fff; }
 
+.favorite-star-active { color: #f59e0b; fill: #f59e0b; }
+
 /* Form controls */
 .form-control {
   height: var(--field-height);

@@ -51,7 +51,18 @@
         <div id="filter-chips" style="margin-bottom: var(--space-4);"></div>
 
         <div id="youth-table"></div>
-        <div id="youth-pagination"></div>
+        <div class="row-between" style="flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2);">
+          <div id="youth-pagination"></div>
+          <div class="filter-field" style="max-width: 180px;">
+            <label for="rows-per-page-select">Itens por página</label>
+            <select id="rows-per-page-select" class="form-control">
+              <option value="12">12</option>
+              <option value="24">24</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
       </main>
     </div>
   </div>

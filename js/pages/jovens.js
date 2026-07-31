@@ -4,6 +4,7 @@ import { CityService } from "../services/city-service.js";
 import { CongregationService } from "../services/congregation-service.js";
 import { defaultFilters, applyYouthFilters, availableCongregations } from "../services/filter-service.js";
 import { applySegment, segmentCounts } from "../services/segmentation-service.js";
+import { PreferencesService } from "../services/preferences-service.js";
 import { BackupService } from "../services/backup-service.js";
 import { renderFilterBar, renderFilterChips } from "../components/filter-bar.js";
 import { renderDataTable, sortRows } from "../components/data-table.js";
@@ -28,11 +29,23 @@ let searchTerm = "";
 let activeSegment = "all";
 let sort = { key: "nome", dir: "asc" };
 let page = 1;
-const pageSize = 12;
+let pageSize = PreferencesService.getJovensRowsPerPage(12);
 
 async function init() {
   [cities, congregations] = await Promise.all([CityService.list(), CongregationService.list()]);
   await loadAndRender();
+
+  const rowsPerPageSelect = qs("#rows-per-page-select");
+  if (![...rowsPerPageSelect.options].some((o) => Number(o.value) === pageSize)) {
+    rowsPerPageSelect.appendChild(new Option(String(pageSize), String(pageSize)));
+  }
+  rowsPerPageSelect.value = String(pageSize);
+  rowsPerPageSelect.addEventListener("change", (e) => {
+    pageSize = Number(e.target.value);
+    page = 1;
+    PreferencesService.setJovensRowsPerPage(pageSize);
+    render();
+  });
 
   qs("#search-input").addEventListener(
     "input",
