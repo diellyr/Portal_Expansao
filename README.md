@@ -423,7 +423,7 @@ O dashboard, a página de Jovens e a página de Relatórios compartilham a mesma
 
 **Indicadores anuais**: um seletor de Ano filtra três gráficos de barras — cadastros realizados no ano por mês, admissões no ano por mês (baseado na data de entrada) e batizados no ano por mês (baseado na data de batismo nas águas) — todos respeitando os filtros globais já aplicados.
 
-**Comparativo de crescimento**: gráfico de linha com uma linha por cidade, mostrando o total acumulado de jovens cadastrados ano a ano (baseado na data de cadastro) — útil para comparar a velocidade de crescimento entre cidades ao longo do tempo. Dois seletores, **De** e **Até**, definem o intervalo de anos exibido (populados a partir dos anos com dados reais); se "De" ficar maior que "Até" — ou vice-versa — o outro seletor se ajusta automaticamente para manter o intervalo válido.
+**Comparativo de crescimento**: gráfico de linha com uma linha por cidade, mostrando o total acumulado de jovens cadastrados ano a ano (baseado na data de cadastro) — útil para comparar a velocidade de crescimento entre cidades ao longo do tempo. Dois seletores, **De** e **Até**, definem o intervalo de anos exibido — abrem por padrão em **2021 até o ano atual**, mas sempre listam também qualquer outro ano com dados reais (ex.: de uma importação com registros mais antigos), e a pessoa pode escolher outro intervalo livremente; se "De" ficar maior que "Até" — ou vice-versa — o outro seletor se ajusta automaticamente para manter o intervalo válido.
 
 ## Relatórios
 
