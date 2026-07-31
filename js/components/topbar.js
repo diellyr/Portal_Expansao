@@ -2,7 +2,7 @@ import { el, refreshIcons, debounce } from "../utils/dom-utils.js";
 import { getSession, logout } from "../services/auth-service.js";
 import { getTheme, toggleTheme } from "../services/theme-service.js";
 import { getLang, setLang, t } from "../services/i18n-service.js";
-import { NotificationService } from "../services/notification-service.js";
+import { NotificationService, CATEGORY_LABELS, CATEGORY_ORDER } from "../services/notification-service.js";
 import { SearchService } from "../services/search-service.js";
 import { openChangePasswordModal } from "./change-password-modal.js";
 import { openYouthFicha } from "./youth-ficha-modal.js";
@@ -175,13 +175,18 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
     notifBadge.textContent = String(alerts.length);
     notifBadge.removeAttribute("hidden");
     notifList.innerHTML = "";
-    alerts.forEach((a) => {
-      notifList.appendChild(
-        el("a", { href: a.href, class: "notif-item" }, [
-          el("i", { "data-lucide": a.icon, class: "icon icon-sm" }),
-          el("span", {}, a.text),
-        ])
-      );
+    CATEGORY_ORDER.forEach((category) => {
+      const items = alerts.filter((a) => a.category === category);
+      if (!items.length) return;
+      notifList.appendChild(el("div", { class: "notif-category-title" }, CATEGORY_LABELS[category]));
+      items.forEach((a) => {
+        notifList.appendChild(
+          el("a", { href: a.href, class: "notif-item" }, [
+            el("i", { "data-lucide": a.icon, class: "icon icon-sm" }),
+            el("span", {}, a.text),
+          ])
+        );
+      });
     });
     refreshIcons();
   }).catch((err) => {

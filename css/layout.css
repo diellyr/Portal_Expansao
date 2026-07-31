@@ -255,7 +255,16 @@
   font-size: var(--font-size-sm);
   border-bottom: 1px solid var(--color-border);
 }
-.notif-dropdown-list { max-height: 320px; overflow-y: auto; }
+.notif-dropdown-list { max-height: 360px; overflow-y: auto; }
+.notif-category-title {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+}
 .notif-item {
   display: flex;
   align-items: flex-start;
