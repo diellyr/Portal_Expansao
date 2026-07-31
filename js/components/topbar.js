@@ -1,9 +1,11 @@
-import { el, refreshIcons } from "../utils/dom-utils.js";
+import { el, refreshIcons, debounce } from "../utils/dom-utils.js";
 import { getSession, logout } from "../services/auth-service.js";
 import { getTheme, toggleTheme } from "../services/theme-service.js";
 import { getLang, setLang, t } from "../services/i18n-service.js";
 import { NotificationService } from "../services/notification-service.js";
+import { SearchService } from "../services/search-service.js";
 import { openChangePasswordModal } from "./change-password-modal.js";
+import { openYouthFicha } from "./youth-ficha-modal.js";
 
 export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
   container.innerHTML = "";
@@ -29,6 +31,84 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
       el("h1", { class: "topbar-page-title" }, title),
     ]),
   ]);
+
+  const searchResults = el("div", { class: "search-dropdown", id: "search-dropdown", hidden: true });
+  const searchInput = el("input", {
+    type: "search",
+    class: "form-control topbar-search-input",
+    id: "global-search-input",
+    placeholder: "Buscar jovem, cidade, congregação, conselheiro...",
+    "aria-label": "Pesquisa global",
+    autocomplete: "off",
+  });
+  const searchWrap = el("div", { class: "topbar-search", id: "topbar-search" }, [
+    el("i", { "data-lucide": "search", class: "icon icon-sm topbar-search-icon" }),
+    searchInput,
+    searchResults,
+  ]);
+  const searchMobileToggle = el(
+    "button",
+    { type: "button", class: "btn btn-ghost btn-icon search-mobile-toggle", id: "search-mobile-toggle", "aria-label": "Abrir pesquisa" },
+    [el("i", { "data-lucide": "search", class: "icon" })]
+  );
+
+  function closeSearch() {
+    searchResults.hidden = true;
+    searchWrap.classList.remove("mobile-open");
+  }
+
+  function renderSearchResults(results, query) {
+    searchResults.innerHTML = "";
+    searchResults.hidden = false;
+    if (!results.length) {
+      searchResults.appendChild(el("div", { class: "notif-empty" }, `Nenhum resultado para "${query}"`));
+      return;
+    }
+    results.forEach((r) => {
+      const item = el(
+        "button",
+        { type: "button", class: "search-result-item" },
+        [
+          el("i", { "data-lucide": "user", class: "icon icon-sm" }),
+          el("div", { class: "search-result-text" }, [
+            el("div", { class: "search-result-name" }, r.youth.nome),
+            el("div", { class: "search-result-meta" }, [r.cidade, r.congregacao].filter(Boolean).join(" · ") || "Sem cidade cadastrada"),
+          ]),
+        ]
+      );
+      item.addEventListener("click", () => {
+        closeSearch();
+        searchInput.value = "";
+        openYouthFicha(r.youth, r.cidade || "Não informado", r.congregacao || "Sem igreja cadastrada");
+      });
+      searchResults.appendChild(item);
+    });
+    refreshIcons();
+  }
+
+  const runSearch = debounce(async () => {
+    const query = searchInput.value.trim();
+    if (!query) return closeSearch();
+    const results = await SearchService.search(query, 8);
+    renderSearchResults(results, query);
+  }, 250);
+
+  searchInput.addEventListener("input", runSearch);
+  searchInput.addEventListener("focus", () => {
+    if (searchInput.value.trim()) runSearch();
+  });
+  searchMobileToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    searchWrap.classList.toggle("mobile-open");
+    if (searchWrap.classList.contains("mobile-open")) searchInput.focus();
+    else closeSearch();
+  });
+  document.addEventListener("click", (e) => {
+    if (!searchWrap.contains(e.target) && e.target !== searchMobileToggle) closeSearch();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSearch();
+  });
 
   const session = getSession();
   const initials = (session?.email || "AD").slice(0, 2).toUpperCase();
@@ -170,6 +250,7 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
   });
 
   const right = el("div", { class: "topbar-right" }, [
+    searchMobileToggle,
     userMenuWrap,
     themeToggle,
     notifWrap,
@@ -188,6 +269,7 @@ export function renderTopbar(container, { title, breadcrumbs = [] } = {}) {
   ]);
 
   container.appendChild(left);
+  container.appendChild(searchWrap);
   container.appendChild(right);
   refreshIcons();
 }

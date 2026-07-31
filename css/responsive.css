@@ -12,6 +12,26 @@
   .danger-zone-item { flex-direction: column; align-items: stretch; }
   .topbar-user span:not(.topbar-user-avatar) { display: none; }
   #logout-btn-label { display: none; }
+
+  /* Global search collapses to an icon button that expands into a
+     full-width overlay bar, instead of competing for space in a
+     narrow topbar next to the theme/notif/lang/logout controls. */
+  .topbar-search { display: none; }
+  .search-mobile-toggle { display: inline-flex; }
+  .topbar-search.mobile-open {
+    display: block;
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    right: 0;
+    max-width: none;
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    z-index: 40;
+  }
+  .topbar-search.mobile-open .search-dropdown { left: var(--space-3); right: var(--space-3); }
 }
 
 @media (min-width: 641px) {
