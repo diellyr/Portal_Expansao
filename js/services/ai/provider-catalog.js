@@ -42,7 +42,7 @@ export const PROVIDERS = [
     fields: ["apiKey"],
     capabilities: { streaming: true, structuredJson: true, tools: true, listModels: true, agentTasks: false },
     knownLimitations: "Requer chave com créditos ativos; alguns modelos exigem verificação de organização.",
-    suggestedModels: ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "o3-mini"],
+    suggestedModels: ["gpt-5", "gpt-5-mini", "gpt-4o", "gpt-4o-mini", "o3-mini"],
   },
   {
     id: "gemini",
@@ -54,7 +54,7 @@ export const PROVIDERS = [
     fields: ["apiKey"],
     capabilities: { streaming: true, structuredJson: true, tools: true, listModels: true, agentTasks: false },
     knownLimitations: "Listagem de modelos reflete a chave (Google AI Studio) e pode variar por região.",
-    suggestedModels: ["gemini-2.0-flash", "gemini-1.5-pro"],
+    suggestedModels: ["gemini-3-pro", "gemini-3-flash", "gemini-2.0-flash", "gemini-1.5-pro"],
   },
   {
     id: "anthropic",
@@ -64,9 +64,9 @@ export const PROVIDERS = [
     authType: "api_key",
     defaultEndpoint: "https://api.anthropic.com/v1",
     fields: ["apiKey"],
-    capabilities: { streaming: true, structuredJson: true, tools: true, listModels: false, agentTasks: false },
-    knownLimitations: "A API da Anthropic não expõe endpoint de listagem de modelos -- use os identificadores conhecidos ou um personalizado.",
-    suggestedModels: ["claude-sonnet-5", "claude-opus-5", "claude-haiku-4-5-20251001"],
+    capabilities: { streaming: true, structuredJson: true, tools: true, listModels: true, agentTasks: false },
+    knownLimitations: "",
+    suggestedModels: ["claude-sonnet-5", "claude-opus-5", "claude-fable-5", "claude-haiku-4-5"],
   },
   {
     id: "deepseek",

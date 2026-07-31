@@ -24,7 +24,20 @@
   height: 100vh;
   overflow-y: auto;
   z-index: 40;
+  /* The sidebar itself stays dark navy in both themes, so its scrollbar
+     track/thumb are hardcoded to match rather than following --color-*
+     tokens (which flip for light mode). */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) #0b1730;
 }
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-track { background: #0b1730; }
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
+  border: 2px solid #0b1730;
+}
+.sidebar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
 .sidebar-brand {
   display: flex;
   align-items: center;

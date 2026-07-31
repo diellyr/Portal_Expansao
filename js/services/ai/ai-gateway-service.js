@@ -92,6 +92,45 @@ async function callRelay(payload, { timeoutMs = 30000, signal } = {}) {
   }
 }
 
+/**
+ * Manus's dedicated agent flow: submit a task, then poll it until it
+ * reaches a terminal state, entirely through the relay (Manus is never a
+ * local/isLocal provider). This is the "own adapter, not just another chat
+ * model" logic the spec asks for -- everything Manus-specific lives here
+ * and in manus-adapter.js, never leaking into the generic chat path.
+ */
+async function runManusFlow(provider, adapter, config, params, { timeoutMs = 30000, signal } = {}) {
+  const submitRequest = adapter.buildSubmitRequest(config, params);
+  const submitResult = await callRelay({ mode: "generate", providerId: provider.id, request: submitRequest }, { timeoutMs, signal });
+  if (!submitResult.ok) return submitResult;
+
+  const { taskId } = adapter.parseSubmitResponse(submitResult.data);
+  if (!taskId) {
+    return { ok: false, error: { code: "unknown_error", message: "O provedor não retornou um identificador de tarefa válido." } };
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  const pollIntervalMs = 2000;
+  while (Date.now() < deadline) {
+    if (signal?.aborted) return { ok: false, error: { code: "cancelled", message: "Geração cancelada." } };
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    if (signal?.aborted) return { ok: false, error: { code: "cancelled", message: "Geração cancelada." } };
+
+    const statusRequest = adapter.buildStatusRequest(config, taskId);
+    const statusResult = await callRelay({ mode: "test", providerId: provider.id, request: statusRequest }, { timeoutMs: 10000, signal });
+    if (!statusResult.ok) return statusResult;
+
+    const parsed = adapter.parseStatusResponse(statusResult.data);
+    if (parsed.isFailed) {
+      return { ok: false, error: { code: "unknown_error", message: "A tarefa no Manus terminou com erro." } };
+    }
+    if (parsed.isDone) {
+      return { ok: true, data: { text: parsed.text, usage: { inputTokens: null, outputTokens: null }, finishReason: "end_turn" } };
+    }
+  }
+  return { ok: false, error: { code: "timeout", message: "O provedor demorou demais para responder. Tente novamente." } };
+}
+
 async function callLocalProvider(provider, config, adapter, params, { timeoutMs = 30000, signal } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -155,6 +194,10 @@ export const AIGatewayService = {
       responseFormat: "text",
     };
 
+    if (adapter.isAsyncAgent) {
+      return runManusFlow(provider, adapter, config, params, { timeoutMs: config.timeoutMs });
+    }
+
     if (provider.isLocal) {
       return callLocalProvider(provider, config, adapter, params, { timeoutMs: config.timeoutMs });
     }
@@ -216,6 +259,11 @@ export const AIGatewayService = {
         maxTokens: maxTokens ?? config.maxTokens,
         responseFormat: provider.capabilities.structuredJson ? responseFormat : "text",
       };
+
+      if (adapter.isAsyncAgent) {
+        const result = await runManusFlow(provider, adapter, { ...config, model }, params, { timeoutMs: config.timeoutMs, signal });
+        return result.ok ? { ok: true, data: { ...result.data, usedFallback: false, provider: provider.id, model } } : result;
+      }
 
       if (provider.isLocal) {
         const result = await callLocalProvider(provider, { ...config, model }, adapter, params, { timeoutMs: config.timeoutMs, signal });

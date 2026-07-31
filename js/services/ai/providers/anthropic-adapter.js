@@ -1,10 +1,13 @@
 /**
  * Anthropic Messages API adapter. Different request/response shape from the
  * OpenAI-compatible family: system prompt is a top-level field (not a
- * "system" message), and there is no public models-listing endpoint.
+ * "system" message). Anthropic does publish a models-listing endpoint
+ * (`GET /v1/models`, no beta header) -- used here so "Buscar modelos
+ * disponíveis" always reflects the real, current catalog instead of the
+ * hardcoded `suggestedModels` fallback in provider-catalog.js.
  */
 export const anthropicAdapter = {
-  supportsListModels: false,
+  supportsListModels: true,
 
   buildAuthHeaders(config) {
     return { "x-api-key": config.apiKey || "", "anthropic-version": "2023-06-01" };
@@ -32,5 +35,17 @@ export const anthropicAdapter = {
       ? { inputTokens: json.usage.input_tokens ?? null, outputTokens: json.usage.output_tokens ?? null }
       : { inputTokens: null, outputTokens: null };
     return { text, usage, finishReason: json?.stop_reason ?? null };
+  },
+
+  buildModelsRequest(provider, config) {
+    return {
+      url: `${(config.baseUrl || provider.defaultEndpoint).replace(/\/$/, "")}/models?limit=1000`,
+      headers: this.buildAuthHeaders(config),
+    };
+  },
+
+  /** Anthropic's Models API paginates with { data: [{ id }, ...], has_more }, same field name as the OpenAI shape. */
+  parseModelsResponse(json) {
+    return (json?.data || []).map((m) => m.id).filter(Boolean);
   },
 };
