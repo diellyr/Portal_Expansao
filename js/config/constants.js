@@ -108,6 +108,7 @@ export const NAV_ITEMS = [
   { href: "jovens.html", icon: "users", label: "Jovens", key: "jovens" },
   { href: "eventos.html", icon: "calendar", label: "Eventos", key: "eventos" },
   { href: "relatorios.html", icon: "bar-chart-3", label: "Relatórios", key: "relatorios" },
+  { href: "qualidade.html", icon: "shield-check", label: "Qualidade dos Cadastros", key: "qualidade" },
   {
     href: "backup.html",
     icon: "database-backup",

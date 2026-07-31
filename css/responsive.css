@@ -24,3 +24,21 @@
   .main-content { padding: 0; max-width: none; }
   .surface { box-shadow: none; border: 1px solid #ccc; }
 }
+
+/* Print-only area used by js/utils/print-utils.js -- content (e.g. a ficha
+   built for a modal) is moved in here right before window.print(), and
+   everything else on the page is hidden for the duration of the print. */
+#app-print-area { display: none; }
+@media print {
+  body.app-printing > *:not(#app-print-area) { display: none !important; }
+  body.app-printing #app-print-area {
+    display: block !important;
+    position: static;
+    padding: var(--space-5);
+    color: #000;
+    background: #fff;
+  }
+  .ficha-print-title { font-size: 20px; font-weight: 700; margin: 0 0 var(--space-4); }
+  .ficha-print .ficha-header { margin-bottom: var(--space-4); }
+  .ficha-print .detail-grid { break-inside: avoid; }
+}

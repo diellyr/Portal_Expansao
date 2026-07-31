@@ -10,9 +10,9 @@ import { renderPagination } from "../components/pagination.js";
 import { openModal, confirmModal } from "../components/modal.js";
 import { toast } from "../components/toast.js";
 import { createPhotoUpload } from "../components/photo-upload.js";
+import { openYouthFicha, avatarNode, statusBadge } from "../components/youth-ficha-modal.js";
 import { el, qs, debounce, refreshIcons } from "../utils/dom-utils.js";
 import { calculateAge, formatDateBR } from "../utils/dates.js";
-import { formatBoolean } from "../utils/formatters.js";
 import { YOUTH_STATUS_LABELS, AGE_RANGES, TIPO_ADMISSAO_LABELS, SEXO_LABELS } from "../config/constants.js";
 
 const ok = await bootstrapPage({ activeKey: "jovens", title: "Jovens" });
@@ -60,6 +60,20 @@ async function init() {
   qs("#new-youth-btn").addEventListener("click", () => openYouthForm());
 
   renderFiltersUI();
+  openYouthFromDeepLink();
+}
+
+/**
+ * Supports jovens.html?edit=<id>, used by Central de Qualidade and Pesquisa
+ * Global so "corrigir cadastro" jumps straight into the edit form instead of
+ * making the user search for the record again.
+ */
+function openYouthFromDeepLink() {
+  const id = new URLSearchParams(window.location.search).get("edit");
+  if (!id) return;
+  const youth = allYouth.find((y) => y.id === id);
+  if (youth) openYouthForm(youth);
+  window.history.replaceState({}, "", window.location.pathname);
 }
 
 async function loadAndRender() {
@@ -167,85 +181,8 @@ function render() {
   });
 }
 
-function statusBadge(status) {
-  return { ativo: "success", visitante: "info", novo_convertido: "info", ausente: "warning", transferido: "neutral", inativo: "danger" }[status] || "neutral";
-}
-
-function avatarNode(youth, size = "sm") {
-  if (youth.foto) {
-    return el("img", { src: youth.foto, alt: "", class: size === "lg" ? "ficha-header-photo" : "avatar-thumb" });
-  }
-  return el("div", { class: size === "lg" ? "ficha-header-photo-placeholder" : "avatar-thumb-placeholder" }, [
-    el("i", { "data-lucide": "user", class: size === "lg" ? "icon icon-lg" : "icon icon-sm" }),
-  ]);
-}
-
-function detailItem(label, value) {
-  return el("div", { class: "detail-item" }, [el("span", { class: "detail-item-label" }, label), el("span", { class: "detail-item-value" }, value)]);
-}
-
 function openYouthDetails(youth) {
-  const header = el("div", { class: "ficha-header" }, [
-    avatarNode(youth, "lg"),
-    el("div", { class: "ficha-header-info" }, [
-      el("div", { class: "ficha-header-name" }, youth.nome),
-      el("div", { class: "ficha-header-meta" }, [
-        youth.codigo ? el("span", {}, `Código ${youth.codigo}`) : null,
-        el("span", { class: `badge badge-${statusBadge(youth.status)}` }, YOUTH_STATUS_LABELS[youth.status] || youth.status),
-        el("span", {}, cityName(youth.cidadeId)),
-        el("span", {}, congName(youth.congregacaoId)),
-      ].filter(Boolean)),
-    ]),
-  ]);
-
-  const grid = el("div", { class: "detail-grid" }, [
-    detailItem("Código", youth.codigo || "Não informado"),
-    detailItem("Idade", youth.idade === null ? "Não informado" : `${youth.idade} anos`),
-    detailItem("Data de nascimento", formatDateBR(youth.dataNascimento)),
-    detailItem("Naturalidade", youth.naturalidade || "Não informado"),
-    detailItem("Sexo", SEXO_LABELS[youth.sexo] || "Não informado"),
-    detailItem("Telefone", youth.telefone || "Não informado"),
-    detailItem("Celular", youth.celular || "Não informado"),
-    detailItem("Endereço", youth.endereco || "Não informado"),
-    detailItem("Número", youth.numero || "Não informado"),
-    detailItem("Bairro", youth.bairro || "Não informado"),
-    detailItem("CEP", youth.cep || "Não informado"),
-    detailItem("Cidade", cityName(youth.cidadeId)),
-    detailItem("Congregação", congName(youth.congregacaoId)),
-    detailItem("Status", YOUTH_STATUS_LABELS[youth.status]),
-    detailItem("RG", youth.rg || "Não informado"),
-    detailItem("Órgão emissor", youth.orgaoEmissor || "Não informado"),
-    detailItem("CPF", youth.cpf || "Não informado"),
-    detailItem("Escolaridade", youth.escolaridade || "Não informado"),
-    detailItem("Profissão", youth.profissao || "Não informado"),
-    detailItem("Estado civil", youth.estadoCivil || "Não informado"),
-    detailItem("Outro (qual)?", youth.outroEstadoCivil || "Não informado"),
-    detailItem("Cônjuge", youth.conjuge || "Não informado"),
-    detailItem("Nome do pai", youth.nomePai || "Não informado"),
-    detailItem("Nome da mãe", youth.nomeMae || "Não informado"),
-    detailItem("Cargo", youth.cargo || "Não informado"),
-    detailItem("Pastor", youth.pastor || "Não informado"),
-    detailItem("Conselheiro local", youth.conselheiroLocal || "Não informado"),
-    detailItem("Conselheiro da cidade", youth.conselheiroCidade || "Não informado"),
-    detailItem("Batismo nas águas", youth.dataBatismoAguas ? formatDateBR(youth.dataBatismoAguas) : "Não"),
-    detailItem("Batizado no Espírito Santo", formatBoolean(youth.batizadoEspiritoSanto)),
-    detailItem("Instrumento", youth.instrumento || "Nenhum"),
-    detailItem("Prega", formatBoolean(youth.prega)),
-    detailItem("Canta", formatBoolean(youth.canta)),
-    detailItem("Outros talentos", youth.outrosTalentos || "Não informado"),
-    detailItem("Qtd", youth.qtd || "Não informado"),
-    detailItem("Líder de Expansão?", formatBoolean(youth.liderExpansao)),
-    detailItem("Se líder, qual?", youth.seLider || "Não informado"),
-    detailItem("Qual departamento?", youth.qualDepartamento || "Não informado"),
-    detailItem("Nome do dirigente", youth.nomeDirigente || "Não informado"),
-    detailItem("Cadastro recebido por", youth.recebidoPor || "Não informado"),
-    detailItem("Tipo de admissão", TIPO_ADMISSAO_LABELS[youth.tipoAdmissao] || "Não informado"),
-    detailItem("Observações", youth.observacoes || "Não informado"),
-    detailItem("Data de entrada", formatDateBR(youth.dataEntrada)),
-  ]);
-
-  const body = el("div", {}, [header, grid]);
-  openModal({ title: "Ficha do jovem", body, size: "modal-lg", actions: [{ label: "Fechar", className: "btn btn-secondary" }] });
+  openYouthFicha(youth, cityName(youth.cidadeId), congName(youth.congregacaoId));
 }
 
 function field(id, label, inputEl, required = false) {

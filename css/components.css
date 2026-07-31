@@ -81,6 +81,11 @@
 .metric-card-value { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); }
 .metric-card-meta { font-size: var(--font-size-xs); color: var(--color-text-soft); }
 .metric-card [data-tooltip] { cursor: help; }
+.metric-card-clickable {
+  border: none; width: 100%; text-align: left; font: inherit; color: inherit;
+  cursor: pointer; transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.metric-card-clickable:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
 /* Tooltip */
 [data-tooltip] { position: relative; }
