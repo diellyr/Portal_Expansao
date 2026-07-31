@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>(function(){try{if(localStorage.getItem("portal_expansao_theme")==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Listas — Portal Expansão</title>
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <link rel="stylesheet" href="../css/forms.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div>
+      <header class="topbar" id="topbar"></header>
+      <main class="main-content" id="main-content">
+        <div class="page-header">
+          <h2 class="page-header-title">Gerador de Listas para Eventos</h2>
+          <p class="page-header-subtitle">
+            Monte uma lista sob medida com os filtros abaixo e exporte para Excel, PDF, WhatsApp ou impressão.
+          </p>
+        </div>
+
+        <div class="surface" style="padding: var(--space-4); margin-bottom: var(--space-4);">
+          <div class="form-group" style="max-width: 420px; margin-bottom: 0;">
+            <label for="list-title">Nome da lista (usado nas exportações)</label>
+            <input type="text" id="list-title" class="form-control" placeholder="Ex.: Congresso Regional de Jovens 2026" value="Lista de jovens" />
+          </div>
+        </div>
+
+        <div class="segment-chips" id="segment-chips" aria-label="Segmentação automática"></div>
+
+        <div id="global-filters"></div>
+        <div class="row-wrap gap-2" style="margin: var(--space-3) 0;">
+          <div class="filter-field" style="max-width: 220px;">
+            <label for="filter-completude">Completude do cadastro</label>
+            <select id="filter-completude" class="form-control">
+              <option value="all">Todos</option>
+              <option value="completos">Somente completos</option>
+              <option value="incompletos">Somente incompletos</option>
+            </select>
+          </div>
+        </div>
+        <div id="filter-chips" style="margin-bottom: var(--space-4);"></div>
+
+        <div class="surface no-print" style="padding: var(--space-4); margin-bottom: var(--space-4);">
+          <div class="row-between" style="flex-wrap: wrap; gap: var(--space-3);">
+            <div id="list-count" class="text-muted"></div>
+            <div class="row-wrap gap-2">
+              <button type="button" class="btn btn-secondary" id="export-excel-btn">
+                <i data-lucide="file-spreadsheet" class="icon icon-sm"></i> Exportar Excel
+              </button>
+              <button type="button" class="btn btn-secondary" id="print-btn">
+                <i data-lucide="printer" class="icon icon-sm"></i> Imprimir / PDF
+              </button>
+              <button type="button" class="btn btn-secondary" id="copy-names-btn">
+                <i data-lucide="list" class="icon icon-sm"></i> Copiar nomes
+              </button>
+              <button type="button" class="btn btn-secondary" id="copy-whatsapp-btn">
+                <i data-lucide="message-circle" class="icon icon-sm"></i> Copiar p/ WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="lista-table"></div>
+        <div id="lista-pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.462.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="module" src="../js/pages/listas.js"></script>
+</body>
+</html>
