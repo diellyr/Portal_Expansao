@@ -1,7 +1,7 @@
 export const APP_NAME = "Portal Expansão";
 export const APP_SUBTITLE = "Gestão Regional";
 // Keep this in sync with version.md at the repository root.
-export const APP_VERSION = "1.7.1";
+export const APP_VERSION = "1.7.2";
 
 export const DB_NAME = "portal_expansao_db";
 export const DB_VERSION = 1;
@@ -88,6 +88,7 @@ export const EVENT_TYPE_LABELS = {
 };
 
 export const AGE_RANGES = [
+  { key: "menor_12", label: "Menores de 12 anos", min: 0, max: 11 },
   { key: "12_14", label: "12 a 14 anos", min: 12, max: 14 },
   { key: "15_18", label: "15 a 18 anos", min: 15, max: 18 },
   { key: "19_25", label: "19 a 25 anos", min: 19, max: 25 },

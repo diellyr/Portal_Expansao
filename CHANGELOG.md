@@ -9,6 +9,14 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.7.2] — 2026-07-30
+
+### Adicionado
+- Nova faixa etária **"Menores de 12 anos"** (0 a 11 anos), adicionada como
+  primeira opção em `AGE_RANGES` — cobre a lacuna deixada pela reorganização
+  anterior das faixas, em que ninguém abaixo de 12 anos era contabilizado
+  em nenhuma categoria.
+
 ## [1.7.1] — 2026-07-30
 
 ### Alterado
