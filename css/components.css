@@ -30,6 +30,7 @@
 .import-log-line { white-space: pre-wrap; word-break: break-word; }
 .import-log-line-error { color: #f87171; }
 .import-log-line-warning { color: #fbbf24; }
+.import-log-line-success { color: #4ade80; }
 .import-log-line-time { color: #64748b; margin-right: var(--space-2); }
 .import-log-empty { color: #64748b; }
 

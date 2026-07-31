@@ -3,6 +3,7 @@ import { getCurrentUserProfile, isAdminProfile } from "../services/user-profile-
 import { providersByCategory, findProvider, PROVIDERS } from "../services/ai/provider-catalog.js";
 import { getSessionConfig, updateSessionConfig, hasSessionKey, clearSessionKey, restoreDefaults } from "../services/ai/session-config-store.js";
 import { AIGatewayService } from "../services/ai/ai-gateway-service.js";
+import { onAiLog } from "../services/ai/ai-log-service.js";
 import { ContextFunctions } from "../services/ai/context-functions.js";
 import { ALLOWED_FUNCTIONS, isAllowedFunction, buildFunctionSelectionMessages, buildAnalysisMessages, wrapAsData } from "../services/ai/prompt-builder.js";
 import { validateStrategicResponse, sanitizeRelatedRecordIds } from "../services/ai/response-schema.js";
@@ -37,6 +38,7 @@ async function init() {
   if (isAdmin) {
     qs("#ai-config-section").hidden = false;
     renderConfigForm();
+    setupAiLogConsole();
   }
 
   renderStatusBar();
@@ -75,6 +77,47 @@ function renderStatusBar() {
     bar.appendChild(el("span", { class: "ai-status-item" }, "Configuração visível apenas para administradores."));
   }
   refreshIcons();
+}
+
+/* ------------------------------------------------------------------ */
+/* Log de diagnóstico (admin only)                                     */
+/* ------------------------------------------------------------------ */
+
+let aiLogLines = [];
+
+function setupAiLogConsole() {
+  const body = qs("#ai-log-console-body");
+  let hasEntries = false;
+
+  onAiLog(({ time, message, level }) => {
+    if (!hasEntries) {
+      body.innerHTML = "";
+      hasEntries = true;
+    }
+    const levelClass = level === "error" ? " import-log-line-error" : level === "warning" ? " import-log-line-warning" : level === "success" ? " import-log-line-success" : "";
+    const timeLabel = time.toLocaleTimeString("pt-BR");
+    aiLogLines.push(`[${timeLabel}] ${message}`);
+    const line = el("div", { class: `import-log-line${levelClass}` }, [el("span", { class: "import-log-line-time" }, timeLabel), el("span", {}, message)]);
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  });
+
+  qs("#clear-ai-log-btn").addEventListener("click", () => {
+    body.innerHTML = "";
+    aiLogLines = [];
+    hasEntries = false;
+    body.appendChild(el("div", { class: "import-log-empty" }, "Nenhum log ainda. Os eventos de \"Testar conexão\", \"Buscar modelos disponíveis\" e \"Testar resposta simples\" vão aparecer aqui -- sem nunca mostrar a chave de API."));
+  });
+
+  qs("#copy-ai-log-btn").addEventListener("click", async () => {
+    if (!aiLogLines.length) return toast.info("O log está vazio.");
+    try {
+      await navigator.clipboard.writeText(aiLogLines.join("\n"));
+      toast.success("Log copiado -- cole em uma mensagem para análise.");
+    } catch {
+      toast.error("Não foi possível copiar automaticamente.");
+    }
+  });
 }
 
 /* ------------------------------------------------------------------ */

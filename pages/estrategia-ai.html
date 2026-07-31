@@ -40,6 +40,19 @@
               </p>
             </div>
             <div id="ai-config-form"></div>
+
+            <div class="import-log-console" id="ai-log-console">
+              <div class="import-log-console-header">
+                <span><i data-lucide="terminal" class="icon icon-sm"></i> Log de diagnóstico</span>
+                <span style="display:flex; gap: var(--space-2);">
+                  <button type="button" class="btn btn-ghost btn-sm" id="copy-ai-log-btn">Copiar</button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="clear-ai-log-btn">Limpar</button>
+                </span>
+              </div>
+              <div class="import-log-console-body" id="ai-log-console-body">
+                <div class="import-log-empty">Nenhum log ainda. Os eventos de "Testar conexão", "Buscar modelos disponíveis" e "Testar resposta simples" vão aparecer aqui -- sem nunca mostrar a chave de API.</div>
+              </div>
+            </div>
           </div>
         </section>
 
