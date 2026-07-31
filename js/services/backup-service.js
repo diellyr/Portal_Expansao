@@ -24,6 +24,21 @@ async function clearAllStores() {
   return isSupabaseMode() ? supabaseDb.clearAllStores() : clearAllIndexedDbStores();
 }
 
+const CITY_SCOPED_ROLES = ["lider_simplifique", "conselheiro"];
+
+async function fetchSupabaseBackupTables() {
+  const [cities, congregations, youth, events, importHistory, settingsRows, userProfiles] = await Promise.all([
+    supabaseDb.getAll(STORES.CITIES),
+    supabaseDb.getAll(STORES.CONGREGATIONS),
+    supabaseDb.getAll(STORES.YOUTH),
+    supabaseDb.getAll(STORES.EVENTS),
+    supabaseDb.getAll(STORES.IMPORT_HISTORY).catch(() => []),
+    supabaseDb.getAll(STORES.SETTINGS).catch(() => []),
+    supabaseDb.getAll("user_profiles").catch(() => []),
+  ]);
+  return { cities, congregations, youth, events, importHistory, settingsRows, userProfiles };
+}
+
 export const BackupService = {
   async exportBackup() {
     const [cities, congregations, youth, events, importHistory, settings] = await Promise.all([
@@ -56,15 +71,7 @@ export const BackupService = {
     if (!isSupabaseConfigured()) {
       throw new Error("Supabase não está configurado. Preencha a URL e a chave anon em Administração → Fonte de dados.");
     }
-    const [cities, congregations, youth, events, importHistory, settingsRows, userProfiles] = await Promise.all([
-      supabaseDb.getAll(STORES.CITIES),
-      supabaseDb.getAll(STORES.CONGREGATIONS),
-      supabaseDb.getAll(STORES.YOUTH),
-      supabaseDb.getAll(STORES.EVENTS),
-      supabaseDb.getAll(STORES.IMPORT_HISTORY),
-      supabaseDb.getAll(STORES.SETTINGS),
-      supabaseDb.getAll("user_profiles").catch(() => []),
-    ]);
+    const { cities, congregations, youth, events, importHistory, settingsRows, userProfiles } = await fetchSupabaseBackupTables();
     const backup = {
       version: BACKUP_VERSION,
       source: "supabase",
@@ -73,6 +80,39 @@ export const BackupService = {
       data: { cities, congregations, youth, events, importHistory, settings: settingsRows[0], userProfiles },
     };
     const filename = `portal-expansao-backup-supabase-${new Date().toISOString().slice(0, 10)}.json`;
+    downloadJSON(backup, filename);
+    return backup;
+  },
+
+  /**
+   * "Backup total" button in the Backup module (js/pages/backup.js), open to
+   * the four non-guest editor roles. Always reads from Supabase. Regional
+   * roles (lider_simplifique_regional/conselheiro_regional) get everything,
+   * same as exportSupabaseBackup() -- RLS itself already grants them full
+   * read access. City-scoped roles (lider_simplifique/conselheiro) get
+   * cities/congregations/youth scoped to their own city by the very same
+   * RLS policies, EXCEPT events: RLS deliberately lets those two roles read
+   * every city's events (so they can see what's happening region-wide), so
+   * that one table needs an extra client-side filter to keep this backup
+   * strictly to their own city.
+   */
+  async exportBackupTotal(profile) {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Supabase não está configurado. Preencha a URL e a chave anon em Administração → Fonte de dados.");
+    }
+    const { cities, congregations, youth, events, importHistory, settingsRows, userProfiles } = await fetchSupabaseBackupTables();
+    const isCityScoped = CITY_SCOPED_ROLES.includes(profile?.role);
+    const scopedEvents = isCityScoped ? events.filter((e) => e.cidadeId === profile.cidadeId) : events;
+
+    const backup = {
+      version: BACKUP_VERSION,
+      source: "supabase",
+      scope: isCityScoped ? "city" : "full",
+      exportedAt: new Date().toISOString(),
+      counts: { cities: cities.length, congregations: congregations.length, youth: youth.length, events: scopedEvents.length, userProfiles: userProfiles.length },
+      data: { cities, congregations, youth, events: scopedEvents, importHistory, settings: settingsRows[0], userProfiles },
+    };
+    const filename = `portal-expansao-backup-total-${new Date().toISOString().slice(0, 10)}.json`;
     downloadJSON(backup, filename);
     return backup;
   },
