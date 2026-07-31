@@ -22,8 +22,9 @@ let cities = [];
 let congregations = [];
 let instruments = [];
 let selectedYear = new Date().getFullYear();
-let growthFromYear = null;
-let growthToYear = null;
+const GROWTH_DEFAULT_FROM_YEAR = 2021;
+let growthFromYear = GROWTH_DEFAULT_FROM_YEAR;
+let growthToYear = new Date().getFullYear();
 const charts = {};
 const yearCharts = {};
 let growthChartCard = null;
@@ -33,10 +34,6 @@ async function init() {
   [cities, congregations] = await Promise.all([CityService.list(), CongregationService.list()]);
   const youth = await YouthService.list();
   instruments = [...new Set(youth.map((y) => y.instrumento).filter(Boolean))].sort();
-
-  const ascYears = DashboardService.getAvailableYears(youth).sort((a, b) => a - b);
-  growthFromYear = ascYears[0];
-  growthToYear = ascYears[ascYears.length - 1];
 
   buildChartCards();
   buildYearChartCards();
@@ -185,7 +182,12 @@ function fillYearSelect(select, years, selected) {
 }
 
 function populateGrowthYearSelects(years) {
-  const ascYears = [...years].sort((a, b) => a - b);
+  // Always offer 2021..hoje regardless of which years actually have data,
+  // so the default range (2021 até o ano atual) is always selectable --
+  // merged with any other years found in the data (e.g. older imports).
+  const yearSet = new Set(years);
+  for (let y = GROWTH_DEFAULT_FROM_YEAR; y <= new Date().getFullYear(); y++) yearSet.add(y);
+  const ascYears = [...yearSet].sort((a, b) => a - b);
   fillYearSelect(qs("#growth-year-from"), ascYears, growthFromYear);
   fillYearSelect(qs("#growth-year-to"), ascYears, growthToYear);
 }

@@ -9,6 +9,16 @@ A versão atual também é exibida na interface (abaixo do logotipo, na barra
 lateral e na tela de login) e fica sincronizada com `APP_VERSION` em
 `js/config/constants.js` e com `version.md`.
 
+## [1.7.3] — 2026-07-30
+
+### Alterado
+- O gráfico "Crescimento de jovens por cidade" agora abre com o intervalo
+  **De 2021 até o ano atual** por padrão, em vez do menor/maior ano com
+  dados reais. Os seletores **De**/**Até** sempre listam 2021 até o ano
+  atual (mesmo sem dados em algum desses anos), além de qualquer outro ano
+  com dados reais fora desse intervalo — a pessoa continua livre para
+  escolher outro período.
+
 ## [1.7.2] — 2026-07-30
 
 ### Adicionado
