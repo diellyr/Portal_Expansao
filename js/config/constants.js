@@ -101,34 +101,49 @@ export const CHART_COLORS = [
   "#16a34a", "#dc2626", "#0891b2", "#6366f1", "#64748b",
 ];
 
+/**
+ * Ordered category groups the sidebar renders NAV_ITEMS under (see
+ * sidebar.js). `key` is used for the i18n lookup (`nav.category.<key>`)
+ * and must match a `category` value on at least one NAV_ITEMS entry.
+ */
+export const NAV_CATEGORIES = [
+  { key: "visao-geral", label: "Visão geral" },
+  { key: "cadastros", label: "Cadastros" },
+  { key: "analises", label: "Análises e inteligência" },
+  { key: "produtividade", label: "Produtividade" },
+  { key: "administracao", label: "Administração" },
+];
+
 export const NAV_ITEMS = [
-  { href: "dashboard.html", icon: "layout-dashboard", label: "Dashboard", key: "dashboard" },
-  { href: "cidades.html", icon: "map-pin", label: "Cidades", key: "cidades" },
-  { href: "congregacoes.html", icon: "building-2", label: "Congregações", key: "congregacoes" },
-  { href: "jovens.html", icon: "users", label: "Jovens", key: "jovens" },
-  { href: "eventos.html", icon: "calendar", label: "Eventos", key: "eventos" },
-  { href: "relatorios.html", icon: "bar-chart-3", label: "Relatórios", key: "relatorios" },
-  { href: "qualidade.html", icon: "shield-check", label: "Qualidade dos Cadastros", key: "qualidade" },
-  { href: "listas.html", icon: "clipboard-list", label: "Gerador de Listas", key: "listas" },
-  { href: "comparador.html", icon: "git-compare", label: "Comparador de Cidades", key: "comparador" },
-  { href: "cobertura-regional.html", icon: "globe", label: "Cobertura Regional", key: "cobertura-regional" },
-  { href: "favoritos.html", icon: "star", label: "Favoritos e Preferências", key: "favoritos" },
-  {
-    href: "backup.html",
-    icon: "database-backup",
-    label: "Backup & Exportação",
-    key: "backup",
-    roles: ["lider_simplifique_regional", "conselheiro_regional", "lider_simplifique", "conselheiro"],
-  },
+  { href: "dashboard.html", icon: "layout-dashboard", label: "Dashboard", key: "dashboard", category: "visao-geral" },
+  { href: "cidades.html", icon: "map-pin", label: "Cidades", key: "cidades", category: "cadastros" },
+  { href: "congregacoes.html", icon: "building-2", label: "Congregações", key: "congregacoes", category: "cadastros" },
+  { href: "jovens.html", icon: "users", label: "Jovens", key: "jovens", category: "cadastros" },
+  { href: "eventos.html", icon: "calendar", label: "Eventos", key: "eventos", category: "cadastros" },
+  { href: "relatorios.html", icon: "bar-chart-3", label: "Relatórios", key: "relatorios", category: "analises" },
+  { href: "comparador.html", icon: "git-compare", label: "Comparador de Cidades", key: "comparador", category: "analises" },
+  { href: "cobertura-regional.html", icon: "globe", label: "Cobertura Regional", key: "cobertura-regional", category: "analises" },
   {
     href: "estrategia-ai.html",
     icon: "brain-circuit",
     label: "Estratégia AI",
     key: "estrategia-ai",
+    category: "analises",
     roles: ["lider_simplifique_regional", "conselheiro_regional", "lider_simplifique", "conselheiro"],
   },
-  { href: "usuarios.html", icon: "user-cog", label: "Usuários", key: "usuarios", adminOnly: true },
-  { href: "administracao.html", icon: "settings", label: "Administração", key: "administracao", adminOnly: true },
+  { href: "qualidade.html", icon: "shield-check", label: "Qualidade dos Cadastros", key: "qualidade", category: "produtividade" },
+  { href: "listas.html", icon: "clipboard-list", label: "Gerador de Listas", key: "listas", category: "produtividade" },
+  { href: "favoritos.html", icon: "star", label: "Favoritos e Preferências", key: "favoritos", category: "produtividade" },
+  {
+    href: "backup.html",
+    icon: "database-backup",
+    label: "Backup & Exportação",
+    key: "backup",
+    category: "administracao",
+    roles: ["lider_simplifique_regional", "conselheiro_regional", "lider_simplifique", "conselheiro"],
+  },
+  { href: "usuarios.html", icon: "user-cog", label: "Usuários", key: "usuarios", category: "administracao", adminOnly: true },
+  { href: "administracao.html", icon: "settings", label: "Administração", key: "administracao", category: "administracao", adminOnly: true },
 ];
 
 export const DEMO_FLAG = "isDemo";
